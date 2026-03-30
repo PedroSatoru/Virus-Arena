@@ -49,3 +49,67 @@ O final do jogo é determinado pelo estado de preservação dos órgãos e do co
 * **Final Perfeito:** Todos os órgãos defendidos com sucesso; o humano sobrevive saudável.
 * **Final com Sequelas:** Se o jogador perdeu a vida de um cenário específico (ex: Pulmão), a cutscene final mostra o humano vivo, mas com problemas crônicos naquele órgão.
 * **Final de Falência Sistêmica:** Se a vida total do corpo (1500) chegar a zero em qualquer momento, o humano morre e o jogo termina em *Game Over*.
+------
+
+# 3. PERSONAGENS
+
+### **O Protagonista: Glóbulo Branco (Unidade de Defesa)**
+
+*   **História Pregressa:**
+    O protagonista é uma célula de defesa de elite, gerada na medula óssea e enviada às pressas para as zonas críticas de infecção. Ele não é apenas um soldado, mas a última barreira entre a vida e a falência sistêmica. Sua missão começou nos Pulmões, mas a gravidade da invasão o forçará a viajar pelos canais arteriais até o centro do pensamento humano.
+    
+*   **Personalidade e Reação aos Desafios:**
+    Como uma sentinela programada para a proteção, sua personalidade é de sacrifício. Ele reage aos desafios de forma adaptativa: ao encontrar novos patógenos, ele sofre mutações (Power-ups) para aumentar sua eficácia. Sua principal característica é a resiliência, mantendo-se firme mesmo quando o cenário ao seu redor começa a degradar-se.
+
+*   **Relação com a Jogabilidade:**
+    O personagem possui uma natureza dual única: ele é simultaneamente uma **arma** (capaz de eliminar vírus com disparos) e um **escudo** (capaz de absorver projéteis que destruiriam o corpo, mas que não o ferem). Essa dinâmica exige que o jogador alterne constantemente entre atacar inimigos e posicionar o próprio corpo para proteger o órgão.
+
+### **Movimentos e Habilidades Característicos**
+*   **Disparo Biológico:** Ataque primário para eliminar ameaças à distância.
+*   **Salto Defensivo:** Essencial para alcançar vírus voadores e navegar entre as plataformas fixas e móveis que surgem conforme a infecção avança.
+*   **Interceptação de Projéteis:** Capacidade de colidir com tiros específicos para anular o dano ao cenário (sistema de "Body Block").
+
+### **Mapa de Controles (PC)**
+
+| Comando | Ação |
+| :--- | :--- |
+| **A / D** (ou Setas) | Movimentação Lateral (Esquerda/Direita) |
+| **W / Espaço** | Pulo (Navegação em plataformas fixas e móveis) |
+| **Mouse (Movimento)** | Mirar em 360° |
+| **Botão Esquerdo Mouse** | Atirar (Disparo Biológico) |
+| **ESC / P** | Pausar o Jogo / Menu de Opções |
+
+------ 
+# 4. GAMEPLAY
+
+### **Gênero do Jogo**
+**Virus Arena** é um **Shooter 2D de Sobrevivência Cronometrada** com elementos de **Tower Defense**. O foco não é apenas eliminar todos os inimigos, mas resistir à invasão e proteger o cenário durante um tempo determinado, gerenciando o dano acumulado nos órgãos.
+
+### **Estrutura de Progressão e Ciclo de Jogo**
+O jogo é dividido em **3 Cenários Críticos**. Cada cenário possui uma duração fixa de **3 minutos**. Conforme o cronômetro avança dentro de cada fase, a intensidade aumenta:
+* **Escalonamento Interno:** A velocidade dos inimigos, a quantidade de hordas simultâneas e o dano causado ao corpo aumentam progressivamente até o fim dos 3 minutos.
+* **Transições:** Ao sobreviver ao tempo de cada órgão, o jogador acessa a tela de seleção de **Power-ups** (Tiro Triplo, Velocidade ou Resistência Celular) antes de seguir para o próximo nível.
+
+### **Detalhamento das Fases e Mecânicas de Cenário**
+
+1. **Capítulo 1: Pulmão (Nível de Entrada)**
+   * **Duração:** 3 Minutos.
+   * **Cenário:** Chão plano e estável.
+   * **Dinâmica:** Introdução ao combate e à mecânica de interceptação de tiros.
+
+2. **Capítulo 2: Coração (Nível Intermediário)**
+   * **Duração:** 3 Minutos.
+   * **Cenário:** Introdução de **Plataformas Fixas**.
+   * **Dinâmica:** Exige saltos precisos para bloquear tiros que miram as partes altas do órgão.
+
+3. **Capítulo 3: Cérebro (Nível Final)**
+   * **Duração:** 3 Minutos + **Boss Fight**.
+   * **Cenário:** Presença de **Plataformas Móveis**.
+   * **Dinâmica:** Após resistir aos 3 minutos de hordas intensas, o cronômetro para e surge o **Grande Vírus Mestre (Boss)**, exigindo que o jogador utilize todos os power-ups acumulados para sobreviver e salvar o hospedeiro.
+
+### **Recursos Específicos da Plataforma (PC)**
+* **Interface de Cronômetro:** HUD dedicada que mostra o tempo restante e a integridade do órgão atual em tempo real.
+* **Feedback Visual de Dano:** O cenário sofre alterações estéticas (escurecimento ou pulsações irregulares) conforme a vida do órgão diminui, alertando o jogador sobre a proximidade da falência.
+* **Precisão de Mira:** O uso do mouse é vital para alternar rapidamente entre o "Atirador Anti-Corpo" (prioridade de defesa) e o "Atirador Anti-Player" (prioridade de desvio).
+
+---

@@ -163,3 +163,80 @@ graph TD
     
     Death --> GO((FIM DE JOGO))
     Ending --> GO
+```
+------#
+
+# 6. EXPERIÊNCIA DE JOGO
+
+### **O Sentimento Principal**
+O foco é a **Urgenta e Defesa**. O jogador deve sentir que é a última barreira de proteção. A experiência é pautada pelo gerenciamento de riscos: "Devo focar em eliminar o vírus ou usar meu corpo para bloquear o dano ao órgão?". A pressão do cronômetro de 3 minutos mantém o ritmo constante de adrenalina.
+
+### **A Primeira Impressão (Tela Inicial)**
+Para viabilidade do projeto (equipe de 2 desenvolvedores), a tela inicial será minimalista e funcional:
+*   **Visual:** Fundo estático com arte estilizada de uma artéria ou tecido orgânico em tons de vermelho escuro. O título "Virus Arena" centralizado com efeito de pulsação suave.
+*   **Menu Direto:** Botões simples de "Jogar", "Tutorial/Créditos" e "Sair".
+*   **Início de Jogo:** Ao clicar em Jogar, uma breve cena de 5 segundos (estilo HQ ou texto rápido) contextualiza a invasão nos pulmões e lança o jogador na arena.
+
+### **Interface do Usuário (HUD)**
+A interface foi desenhada para priorizar a leitura rápida do estado do corpo e do tempo:
+
+*   **Superior Central:** Cronômetro regressivo (Iniciando em 3:00).
+*   **Inferior (Extensão Total):** Barra de vida do **Corpo** (1500 HP), ocupando a largura da tela para indicar a importância vital.
+*   **Canto Inferior Esquerdo (Abaixo da barra):** Ícones de 5 corações (Vida do Glóbulo Branco).
+*   **Canto Inferior Direito (Abaixo da barra):** Indicador numérico ou barra menor de vida do **Órgão Atual** (Ex: Pulmão - 500/500).
+
+### **Design de Som e Feedback**
+*   **Ambiente:** Som ambiente abafado de batidas cardíacas que aumenta de volume nos últimos 30 segundos de cada fase.
+*   **Feedback Visual:** O personagem pisca em vermelho ao levar dano; a barra de vida do corpo treme levemente quando um projétil atinge o cenário.
+
+### **Fluxograma de Navegação (Interface)**
+
+```mermaid
+graph LR
+    A[Menu Principal] --> B[Cena Inicial Rápida]
+    B --> C[Gameplay: Arena]
+    C --> D{Menu de Pausa}
+    D -->|Retornar| C
+    D -->|Menu Inicial| A
+    C --> E[Escolha de Power-up]
+    E --> C
+    C --> F[Cenas de Final / Game Over]
+    F --> A
+```
+-----
+
+# 7. MECÂNICAS DE JOGO
+
+### **Mecânicas de Interação (Plataformas e Arena)**
+A arena quadrada evolui de uma caixa simples para um ambiente de defesa multidirecional. O "corpo" (cenário) recebe dano se projéteis atingirem as superfícies protegidas:
+
+1.  **Nível 1 (Pulmão) - Arena Base:** 
+    *   **Estrutura:** Chão plano e paredes simples.
+    *   **Foco:** Defesa prioritária do solo. O jogador se movimenta apenas no plano horizontal.
+
+2.  **Nível 2 (Coração) - Defesa Lateral:** 
+    *   **Estrutura:** Chão normal + **Plataformas Fixas** posicionadas próximas às paredes laterais.
+    *   **Mecânica:** As paredes também passam a sofrer dano. O jogador deve usar as plataformas para subir e interceptar tiros que miram as laterais do coração.
+
+3.  **Nível 3 (Cérebro) - Defesa Total:** 
+    *   **Estrutura:** Chão normal + **Plataformas Móveis** (sobe/desce).
+    *   **Mecânica:** O teto da arena também se torna um ponto vulnerável. O jogador precisa utilizar o "timing" das plataformas móveis para alcançar a parte superior da arena e bloquear projéteis que subiriam para atingir o teto (córtex).
+
+### **Perigos de Colisão (Dano ao Cenário)**
+O cenário possui hitboxes em suas extremidades (Chão, Paredes e Teto). 
+*   **Impacto Viral:** Qualquer projétil do "Atirador Anti-Corpo" ou o corpo do "Kamikaze" que colidir com essas hitboxes subtrai HP da barra de 1500 do corpo, aplicando o multiplicador do órgão atual (x1, x2 ou x3).
+
+### **Itens e Power-ups (Mecânica de Evolução)**
+Ao final de cada fase de 3 minutos, o jogador escolhe **uma** entre três mutações:
+
+| Power-up | Efeito Técnico | Vantagem Estratégica |
+| :--- | :--- | :--- |
+| **1. Tiro Triplo** | Disparo em leque (3 projéteis por vez). | Ideal para limpar grupos de vírus e atingir Kamikazes em ângulos difíceis. |
+| **2. Mais Velocidade** | Aumento na velocidade de movimento e altura do pulo. | Crucial para transitar entre o chão e as plataformas móveis no Cérebro. |
+| **3. Vitalidade Extra** | +1 Coração e restaura 30% da vida total do corpo. | Aumenta a margem de erro para quem sofreu muito dano nos níveis anteriores. |
+
+### **Mecânica de Bloqueio (Body Block)**
+O diferencial do jogo é a gestão de colisões do personagem:
+*   **Intercepção:** O Glóbulo Branco é imune aos tiros amarelos (Anti-Corpo). O jogador deve usar o personagem como um "escudo móvel", posicionando-se na trajetória desses tiros para que eles batam nele e desapareçam antes de tocar as paredes, teto ou chão.
+
+---

@@ -240,3 +240,43 @@ O diferencial do jogo é a gestão de colisões do personagem:
 *   **Intercepção:** O Glóbulo Branco é imune aos tiros amarelos (Anti-Corpo). O jogador deve usar o personagem como um "escudo móvel", posicionando-se na trajetória desses tiros para que eles batam nele e desapareçam antes de tocar as paredes, teto ou chão.
 
 ---
+
+# 8. INIMIGOS E CHEFES
+
+A inteligência artificial evolui de hordas de distração para um confronto final de precisão e sacrifício no Córtex Cerebral (Nível 3).
+
+### 1. Inimigos Comuns (Hordas de 3 Minutos)
+
+| Inimigo | Cor | Alvo Principal | Comportamento |
+| :--- | :--- | :--- | :--- |
+| **Atirador Anti-Corpo** | Amarelo | **Cenário** | Atira nas extremidades (Chão/Parede/Teto). |
+| **Atirador Anti-Player** | Roxo | **Jogador** | Foca no Glóbulo Branco para remover corações. |
+| **Kamikaze** | Verde | **Ambos** | Explosão de alto dano ao impacto com qualquer superfície. |
+
+### 2. O Vírus Mestre (Boss Final)
+
+O Boss surge após os 3 minutos do Nível 3, apresentando uma barra de vida própria no topo da tela. Ele utiliza o cenário (plataformas móveis) como parte da sua mecânica de "Gato e Rato".
+
+#### **Mecânica Principal: "Oitava de Infecção"**
+O Boss não ataca de forma aleatória, mas sim através de rajadas sincronizadas:
+
+1.  **O Telegrafar (Aviso):** O Boss projeta **8 feixes de luz** simultâneos na arena. 
+    *   **7 feixes roxos:** Indicam ataques que causarão dano apenas ao jogador (perda de corações).
+    *   **1 feixe amarelo:** Indica o ataque que atingirá diretamente o cenário (dano ao corpo).
+2.  **O Tempo de Reação:** O jogador tem **1.5 segundo** de aviso visual antes dos tiros serem disparados de uma só vez.
+3.  **A Decisão Crítica:** 
+    *   As **Plataformas Móveis** protegem contra os tiros roxos. O jogador pode se esconder sob elas e ficar seguro, mas o tiro amarelo atingirá o corpo inevitavelmente.
+    *   Para salvar o corpo (1500 HP), o jogador precisa identificar o feixe amarelo entre os 8 e correr/pular para interceptá-lo com o próprio corpo, expondo-se aos outros 7 tiros roxos no processo.
+
+#### **Janela de Contra-Ataque**
+Após disparar a "Oitava de Infecção", o Boss entra em um breve estado de repouso (2 a 3 segundos). É neste momento que o Glóbulo Branco deve disparar o máximo possível contra o núcleo do Boss para reduzir sua vida.
+
+### 3. Estrutura da Luta
+*   **Fase Única:** A frequência dos ataques aumenta conforme a vida do Boss diminui.
+*   **Verticalidade:** O Boss alterna os 8 feixes entre teto, chão e paredes, obrigando o jogador a usar as plataformas móveis para alcançar os feixes superiores.
+
+### 4. Condição de Vitória e Derrota
+*   **Vitória:** Vida do Boss chega a 0. O jogo prossegue para o cálculo do final baseado nas sequelas do corpo.
+*   **Derrota:** Perda dos 5 corações do jogador ou se a vida total do corpo (1500 HP) chegar a zero.
+
+---

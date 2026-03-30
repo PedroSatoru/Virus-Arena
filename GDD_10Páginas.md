@@ -113,3 +113,53 @@ O jogo é dividido em **3 Cenários Críticos**. Cada cenário possui uma duraç
 * **Precisão de Mira:** O uso do mouse é vital para alternar rapidamente entre o "Atirador Anti-Corpo" (prioridade de defesa) e o "Atirador Anti-Player" (prioridade de desvio).
 
 ---
+
+# 5. MUNDO DO JOGO
+
+### **Atmosfera Geral**
+O mundo de **Virus Arena** é claustrofóbico e urgente. A estética visual mistura tons biológicos (vermelhos, rosas e azuis venosos) com efeitos de luz que indicam a presença da infecção (tons de verde neon ou roxo doentio). A música escala de um ritmo constante para batidas frenéticas conforme o cronômetro se aproxima do fim.
+
+### **Ambientes e Biomas**
+
+| Local | Descrição Visual | Elementos de Gameplay | Clima Sonoro |
+| :--- | :--- | :--- | :--- |
+| **1. Alvéolos Pulmonares** | Tons de rosa claro e azul. Fundo com estruturas que inflam e desinflam suavemente. | **Chão Plano:** Arena aberta para aprendizado de movimentação. | Som de respiração profunda ao fundo; trilha sonora calma mas persistente. |
+| **2. Ventrículo Cardíaco** | Tons de vermelho vibrante e carmesim. Paredes musculares que pulsam visualmente. | **Plataformas Fixas:** Estruturas de válvulas cardíacas que servem de suporte alto. | Trilha rítmica baseada em batidas de coração (Tum-Tum) que acelera com o tempo. |
+| **3. Córtex Cerebral** | Tons de cinza, roxo e dourado. Sinapses elétricas (raios) cruzando o fundo. | **Plataformas Móveis:** Impulsos elétricos que sustentam plataformas flutuantes. | Música eletrônica complexa e "tensa", com sons de estática e eletricidade. |
+
+### **Conexão Narrativa e Visual**
+Os locais estão conectados pelo fluxo sanguíneo. Entre as fases, uma animação simples mostra o Glóbulo Branco sendo transportado por uma "correnteza" de plasma até o próximo órgão alvo da infecção. 
+
+*   **Degradação do Mundo:** Conforme a vida do cenário diminui, as cores vibrantes tornam-se acinzentadas e "murchas", indicando a necrose do tecido e aumentando o sentimento de culpa/urgência no jogador.
+
+### **Fluxograma de Navegação (Mundo)**
+```mermaid
+graph TD
+    Start((Início)) --> Intro[Cena Inicial: Infecção Detectada]
+    Intro --> P1[Fase 1: Pulmão - 3 min]
+    
+    P1 --> Check1{Vida do Corpo > 0?}
+    Check1 -- Não --> Death[Cena de Morte: Falência Sistêmica]
+    Check1 -- Sim --> Win1{Tempo Esgotado?}
+    
+    Win1 -- Sim --> PW1[Escolha de Power-up]
+    PW1 --> P2[Fase 2: Coração - 3 min]
+    
+    P2 --> Check2{Vida do Corpo > 0?}
+    Check2 -- Não --> Death
+    Check2 -- Sim --> Win2{Tempo Esgotado?}
+    
+    Win2 -- Sim --> PW2[Escolha de Power-up]
+    PW2 --> P3[Fase 3: Cérebro - 3 min]
+    
+    P3 --> Check3{Vida do Corpo > 0?}
+    Check3 -- Não --> Death
+    Check3 -- Sim --> Win3{Tempo Esgotado?}
+    
+    Win3 -- Sim --> Boss[BOSS FINAL]
+    Boss --> CheckFinal{Vitória?}
+    CheckFinal -- Não --> Death
+    CheckFinal -- Sim --> Ending[Cenas de Final: Baseado em Sequelas]
+    
+    Death --> GO((FIM DE JOGO))
+    Ending --> GO

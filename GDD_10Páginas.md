@@ -280,3 +280,38 @@ Após disparar a "Oitava de Infecção", o Boss entra em um breve estado de repo
 *   **Derrota:** Perda dos 5 corações do jogador ou se a vida total do corpo (1500 HP) chegar a zero.
 
 ---
+
+# 9. CENAS (CUTSCENES)
+
+As cenas em **Virus Arena** são projetadas para serem ágeis, mantendo o foco na jogabilidade, mas garantindo que o jogador entenda as consequências de suas falhas defensivas nos órgãos vitais.
+
+### **1. Cena de Abertura (Intro)**
+* **Visual:** Estilo "Motion Comic" ou artes estáticas com texto rápido. Mostra microrganismos invasores rompendo uma barreira celular e se alojando nos pulmões.
+* **Narrativa:** Uma mensagem de alerta do sistema imunológico: "Infecção detectada. Setor: Pulmões. Protocolo de defesa ativado."
+* **Transição:** O Glóbulo Branco (jogador) cai no centro da arena 2D e o cronômetro de 3 minutos inicia.
+
+### **2. Cenas de Transição (Interfases)**
+Ocorrem após a sobrevivência de 3 minutos e a escolha do Power-up:
+* **Do Pulmão para o Coração:** O Glóbulo Branco entra em uma corrente sanguínea acelerada. O fundo muda de rosa/azul para vermelho vibrante.
+* **Do Coração para o Cérebro:** A correnteza se torna elétrica e cheia de sinapses. O personagem é impulsionado para a arena final.
+
+### **3. Cenas de Final (Baseadas em Performance)**
+O jogo avalia duas variáveis: a **Vida Total do Corpo (1500 HP)** e se o HP de algum **Cenário Específico** zerou durante a fase.
+
+| Condição | Cena de Desfecho (Resultado) |
+| :--- | :--- |
+| **Vida do Corpo = 0** | **Falência Sistêmica:** O humano não resiste. A tela escurece e mostra o monitor cardíaco parando. (Game Over). |
+| **Órgão Zerado (Ex: Pulmão)** | **Sobrevivência com Sequelas:** O humano vive, mas a cena final mostra-o usando aparelhos respiratórios ou com fadiga crônica. |
+| **Órgão Zerado (Ex: Coração)** | **Sobrevivência com Sequelas:** O humano sobrevive, mas a cena mostra limitações físicas e cuidados cardíacos intensos. |
+| **Órgão Zerado (Ex: Cérebro)** | **Sobrevivência com Sequelas:** O humano vive, mas apresenta dificuldades cognitivas ou de memória na cena final. |
+| **Todos os Órgãos Defendidos** | **Recuperação Total:** O sistema imunológico venceu. O humano aparece saudável e retomando sua rotina normal. |
+
+### **4. Script de Eventos (Lógica das Cenas)**
+* **Trigger de Morte:** Disparado instantaneamente se `Body_HP <= 0`.
+* **Trigger de Vitória:** Disparado após `Boss_HP <= 0`.
+* **Cálculo de Final:** * Se `Pulmao_HP == 0` -> Set Flag "Sequela_Pulmao"
+    * Se `Coracao_HP == 0` -> Set Flag "Sequela_Coracao"
+    * Se `Cerebro_HP == 0` -> Set Flag "Sequela_Cerebro"
+    * O final exibe a combinação das Flags ativas.
+
+---

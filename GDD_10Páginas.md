@@ -164,7 +164,7 @@ graph TD
     Death --> GO((FIM DE JOGO))
     Ending --> GO
 ```
-------#
+------
 
 # 6. EXPERIÊNCIA DE JOGO
 
@@ -306,6 +306,30 @@ O jogo avalia duas variáveis: a **Vida Total do Corpo (1500 HP)** e se o HP de 
 | **Órgão Zerado (Ex: Cérebro)** | **Sobrevivência com Sequelas:** O humano vive, mas apresenta dificuldades cognitivas ou de memória na cena final. |
 | **Todos os Órgãos Defendidos** | **Recuperação Total:** O sistema imunológico venceu. O humano aparece saudável e retomando sua rotina normal. |
 
+---
+# 10. MATERIAL BÔNUS E EXTRAS
+
+### **1. Modo Desbloqueável: Arena Infinita**
+Após derrotar o Boss Final no Córtex Cerebral pela primeira vez, o jogador desbloqueia o **Modo Arena**. Este modo foca puramente na habilidade de sobrevivência e busca pelo recorde de tempo (High Score).
+
+#### **Regras do Modo Arena:**
+* **Seleção de Cenário:** O jogador pode escolher começar em qualquer um dos três órgãos (Pulmão, Coração ou Cérebro).
+* **Vida do Corpo vs. Órgão:** Diferente do modo história, **não existe vida global do corpo (1500 HP)**. O jogador perde se a vida do **Órgão atual** chegar a zero ou se seus 5 corações acabarem.
+* **Dificuldade Progressiva:** A cada ciclo de 3 minutos, a velocidade dos inimigos e a frequência de spawn aumentam em 15%.
+* **Multiplicadores:** As peculiaridades de cada nível (plataformas e multiplicadores de dano) permanecem ativas, tornando o cenário do Cérebro o desafio definitivo para recordes.
+
+### **2. Sistema de Power-ups Infinitos**
+A cada 3 minutos de sobrevivência, a tela de seleção de Power-ups aparece com as seguintes regras lógicas:
+1.  **Exclusividade:** Se o jogador já selecionou "Tiro Triplo" e "Mais Velocidade" em ciclos anteriores, essas opções deixam de aparecer.
+2.  **Foco em Sustentabilidade:** O Power-up de **Resistência Celular** torna-se a opção principal, restaurando:
+    * `+1 Coração` para o Glóbulo Branco.
+    * `20% da Vida Atual do Órgão` (recuperando o desgaste da horda anterior).
+
+### **3. Registro de Recordes (Leaderboard Local)**
+O jogo armazenará o maior tempo de sobrevivência para cada órgão:
+* **Recorde Pulmão:** [Tempo]
+* **Recorde Coração:** [Tempo]
+* **Recorde Cérebro:** [Tempo]
 ### **4. Script de Eventos (Lógica das Cenas)**
 * **Trigger de Morte:** Disparado instantaneamente se `Body_HP <= 0`.
 * **Trigger de Vitória:** Disparado após `Boss_HP <= 0`.

@@ -172,7 +172,7 @@ graph TD
 O foco é a **Urgenta e Defesa**. O jogador deve sentir que é a última barreira de proteção. A experiência é pautada pelo gerenciamento de riscos: "Devo focar em eliminar o vírus ou usar meu corpo para bloquear o dano ao órgão?". A pressão do cronômetro de 3 minutos mantém o ritmo constante de adrenalina.
 
 ### **A Primeira Impressão (Tela Inicial)**
-Para viabilidade do projeto (equipe de 2 desenvolvedores), a tela inicial será minimalista e funcional:
+Para viabilidade do projeto (equipe de 4 desenvolvedores), a tela inicial será minimalista e funcional:
 *   **Visual:** Fundo estático com arte estilizada de uma artéria ou tecido orgânico em tons de vermelho escuro. O título "Virus Arena" centralizado com efeito de pulsação suave.
 *   **Menu Direto:** Botões simples de "Jogar", "Tutorial/Créditos" e "Sair".
 *   **Início de Jogo:** Ao clicar em Jogar, uma breve cena de 5 segundos (estilo HQ ou texto rápido) contextualiza a invasão nos pulmões e lança o jogador na arena.
@@ -180,10 +180,9 @@ Para viabilidade do projeto (equipe de 2 desenvolvedores), a tela inicial será 
 ### **Interface do Usuário (HUD)**
 A interface foi desenhada para priorizar a leitura rápida do estado do corpo e do tempo:
 
-*   **Superior Central:** Cronômetro regressivo (Iniciando em 3:00).
-*   **Inferior (Extensão Total):** Barra de vida do **Corpo** (1500 HP), ocupando a largura da tela para indicar a importância vital.
-*   **Canto Inferior Esquerdo (Abaixo da barra):** Ícones de 5 corações (Vida do Glóbulo Branco).
-*   **Canto Inferior Direito (Abaixo da barra):** Indicador numérico ou barra menor de vida do **Órgão Atual** (Ex: Pulmão - 500/500).
+*   **Inferior Central:** Nome da fase (órgão atual) e cronômetro regressivo (Iniciando em 3:00).
+*   **Canto Inferior Esquerdo (Abaixo da barra):** Ícones de 3 corações (Vida do Glóbulo Branco).
+*   **Canto Inferior Direito (Abaixo da barra):** Barra de vida do **Corpo**.
 
 ### **Design de Som e Feedback**
 *   **Ambiente:** Som ambiente abafado de batidas cardíacas que aumenta de volume nos últimos 30 segundos de cada fase.
@@ -269,11 +268,11 @@ O Boss não ataca de forma aleatória, mas sim através de rajadas sincronizadas
     *   Para salvar o corpo (1500 HP), o jogador precisa identificar o feixe amarelo entre os 8 e correr/pular para interceptá-lo com o próprio corpo, expondo-se aos outros 7 tiros roxos no processo.
 
 #### **Janela de Contra-Ataque**
-Após disparar a "Oitava de Infecção", o Boss entra em um breve estado de repouso (2 a 3 segundos). É neste momento que o Glóbulo Branco deve disparar o máximo possível contra o núcleo do Boss para reduzir sua vida.
+Após disparar a "Oitava de Infecção", o Boss entra em um breve estado de repouso (2 a 3 segundos). É neste momento que o Glóbulo Branco deve disparar o máximo possível contra o Boss para reduzir sua vida.
 
 ### 3. Estrutura da Luta
 *   **Fase Única:** A frequência dos ataques aumenta conforme a vida do Boss diminui.
-*   **Verticalidade:** O Boss alterna os 8 feixes entre teto, chão e paredes, obrigando o jogador a usar as plataformas móveis para alcançar os feixes superiores.
+*   **Verticalidade:** O Boss alterna os 8 feixes entre chão e paredes, obrigando o jogador a usar as plataformas móveis para alcançar os feixes superiores.
 
 ### 4. Condição de Vitória e Derrota
 *   **Vitória:** Vida do Boss chega a 0. O jogo prossegue para o cálculo do final baseado nas sequelas do corpo.

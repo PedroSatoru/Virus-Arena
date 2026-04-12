@@ -36,57 +36,57 @@ Este documento detalha as estratégias de design para guiar o jogador através d
 ### **A. Tela Inicial**
 A tela inicial foi desenhada para ser simples e direta, com opções claras de navegação. O objetivo é reduzir fricção logo no primeiro contato e destacar o fluxo principal de início, tutorial, créditos e saída.
 
-![Tela inicial do jogo](prototipos/menu.jpeg)
+![Tela inicial do jogo](../Docs_entregas/imagens/menu.jpeg)
 
 ### **B. Personagem Jogável**
 O protótipo do jogador reforça a leitura rápida da silhueta e facilita a identificação em combate. A forma simples ajuda a destacar movimento, disparo e a função de bloqueio corporal.
 
-![Protótipo do jogador](prototipos/player.jpeg)
+![Protótipo do jogador](../Docs_entregas/imagens/player.jpeg)
 
 ### **C. HUD e Leitura de Combate**
 O protótipo de gameplay mostra como a interface organiza informação vital: vidas no canto inferior, fase e cronômetro no centro inferior e barra de saúde do corpo no canto oposto. Esse arranjo prioriza decisões rápidas durante a ação.
 
-![Protótipo de gameplay com HUD](prototipos/gameplay.jpg)
+![Protótipo de gameplay com HUD](../Docs_entregas/imagens/gameplay.jpg)
 
 ### **D. Fase 1 - Pulmão**
 Na primeira fase, o cenário introduz a lógica base do jogo: arena horizontal, vida do corpo, inimigos com tiros amarelos e roxos e tempo de sobrevivência de 3 minutos. É a fase de aprendizado da defesa do órgão.
 
-![Protótipo da fase 1 - Pulmão](prototipos/fase1.jpeg)
+![Protótipo da fase 1 - Pulmão](../Docs_entregas/imagens/fase1.jpeg)
 
 ### **E. Fase 2 - Coração**
 A segunda fase amplia a complexidade com mais verticalidade e espaço de deslocamento. O layout reforça o uso de plataformas e a leitura de ameaças laterais, mantendo a barra de vida do corpo como referência estratégica.
 
-![Protótipo da fase 2 - Coração](prototipos/fase2.jpeg)
+![Protótipo da fase 2 - Coração](../Docs_entregas/imagens/fase2.jpeg)
 
 ### **F. Fase 3 - Cérebro**
 A terceira fase consolida a defesa total da arena, com ameaças em múltiplas alturas e uso de plataformas móveis. O destaque visual do feixe amarelo ajuda a treinar a identificação do projétil que precisa ser bloqueado pelo jogador.
 
-![Protótipo da fase 3 - Cérebro](prototipos/fase3.jpeg)
+![Protótipo da fase 3 - Cérebro](../Docs_entregas/imagens/fase3.jpeg)
 
 ### **G. Menu de Pausa**
 O menu de pausa mantém o fluxo simples e funcional, permitindo interromper a partida sem quebrar a leitura do jogo. Ele serve como ponto de descanso e reorganização de estratégia.
 
-![Protótipo do menu de pausa](prototipos/pause.jpeg)
+![Protótipo do menu de pausa](../Docs_entregas/imagens/pause.jpeg)
 
 ### **H. Sistema de Upgrades de DNA**
 O menu de upgrades apresenta claramente as mutações disponíveis entre as fases. As opções reforçam o estilo de progressão do jogo: tiro triplo, aumento de velocidade e vida extra.
 
-![Protótipo do menu de upgrades](prototipos/upgrades.jpeg)
+![Protótipo do menu de upgrades](../Docs_entregas/imagens/upgrades.jpeg)
 
 ### **I. Inimigo: Atirador Anti-Corpo**
 Esse inimigo representa a ameaça voltada ao cenário. O uso de cor amarela e visual agressivo ajuda o jogador a associar rapidamente o tiro à necessidade de defesa do órgão.
 
-![Protótipo do Atirador Anti-Corpo](prototipos/atiradorAntiCorpo.jpeg)
+![Protótipo do Atirador Anti-Corpo](../Docs_entregas/imagens/atiradorAntiCorpo.jpeg)
 
 ### **J. Inimigo: Atirador Anti-Player**
 O atirador roxo comunica o foco direto no jogador e diferencia a ameaça daquelas que atacam o ambiente. A cor mais escura ajuda a criar contraste com o tiro amarelo e com o fundo da arena.
 
-![Protótipo do Atirador Anti-Player](prototipos/atiradorAntiPlayer.jpeg)
+![Protótipo do Atirador Anti-Player](../Docs_entregas/imagens/atiradorAntiPlayer.jpeg)
 
 ### **K. Inimigo: Kamikaze**
 O kamikaze foi desenhado como uma ameaça de impacto direto, visualmente distinta dos atiradores. A leitura simples reforça a sensação de perigo iminente e combina com a proposta de som de aviso antes da colisão.
 
-![Protótipo do Kamikaze](prototipos/kamikaze.jpeg)
+![Protótipo do Kamikaze](../Docs_entregas/imagens/kamikaze.jpeg)
 
 ---
 

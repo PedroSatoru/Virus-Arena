@@ -99,6 +99,7 @@ public class SetupGameScene : Editor
         GameObject purpleBulletPrefab = CreatePurpleBulletPrefab(whiteSprite);
         GameObject antiCorpoPrefab = CreateAntiCorpoPrefab(whiteSprite, enemyBulletPrefab);
         GameObject playerShooterPrefab = CreatePlayerShooterPrefab(whiteSprite, purpleBulletPrefab);
+        GameObject kamikazePrefab = CreateKamikazePrefab(whiteSprite);
 
         // ============ INIMIGO INICIAL ============
         CreateInitialEnemy(antiCorpoPrefab);
@@ -107,7 +108,7 @@ public class SetupGameScene : Editor
         GameObject hudCanvas = CreateHUD();
 
         // ============ GAME MANAGER ============
-        GameObject gmObj = CreateGameManager(antiCorpoPrefab, playerShooterPrefab, hudCanvas);
+        GameObject gmObj = CreateGameManager(antiCorpoPrefab, playerShooterPrefab, kamikazePrefab, hudCanvas);
 
         // ============ CONECTAR REFERÊNCIAS ============
         PlayerShooting ps = player.GetComponent<PlayerShooting>();
@@ -526,6 +527,61 @@ public class SetupGameScene : Editor
     }
 
     // ============================================================
+    // PREFAB DO INIMIGO KAMIKAZE
+    // ============================================================
+    static GameObject CreateKamikazePrefab(Sprite sprite)
+    {
+        // Cor Laranja avermelhada, um pouco menor ou mais denso
+        GameObject enemy = CreateSprite("Enemy_Kamikaze", sprite, new Color(0.9f, 0.3f, 0f),
+            Vector3.zero, new Vector3(0.6f, 0.6f, 1f));
+        enemy.tag = "Enemy";
+        enemy.layer = LayerMask.NameToLayer("Enemy");
+        enemy.GetComponent<SpriteRenderer>().sortingOrder = 5;
+
+        BoxCollider2D col = enemy.AddComponent<BoxCollider2D>();
+        col.size = new Vector2(1f, 1f);
+
+        Rigidbody2D rb = enemy.AddComponent<Rigidbody2D>();
+        rb.gravityScale = 0f;
+        rb.bodyType = RigidbodyType2D.Kinematic;
+
+        EnemyHealth health = enemy.AddComponent<EnemyHealth>();
+        health.maxHP = 2; // Pode aguentar 2 tiros por exemplo, ou 1. Vamos deixar 1.
+        health.maxHP = 1;
+
+        EnemyKamikaze kamikaze = enemy.AddComponent<EnemyKamikaze>();
+        kamikaze.baseMoveSpeed = 3.5f;
+        kamikaze.explosionRadius = 1.5f;
+        kamikaze.playerDamage = 1;
+        kamikaze.bodyDamage = 15f;
+        kamikaze.arenaMinX = -9f;
+        kamikaze.arenaMaxX = 9f;
+        kamikaze.arenaMinY = -4.5f;
+        kamikaze.arenaMaxY = 4.5f;
+
+        // Visual do Kamikaze (um "x" vermelho dentro)
+        GameObject detail1 = CreateSprite("Detail1", sprite, new Color(0.5f, 0f, 0f),
+            Vector3.zero, new Vector3(0.8f, 0.2f, 1f));
+        detail1.transform.parent = enemy.transform;
+        detail1.transform.localPosition = Vector3.zero;
+        detail1.transform.localRotation = Quaternion.Euler(0, 0, 45f);
+        detail1.GetComponent<SpriteRenderer>().sortingOrder = 6;
+
+        GameObject detail2 = CreateSprite("Detail2", sprite, new Color(0.5f, 0f, 0f),
+            Vector3.zero, new Vector3(0.8f, 0.2f, 1f));
+        detail2.transform.parent = enemy.transform;
+        detail2.transform.localPosition = Vector3.zero;
+        detail2.transform.localRotation = Quaternion.Euler(0, 0, -45f);
+        detail2.GetComponent<SpriteRenderer>().sortingOrder = 6;
+
+        AddEyes(enemy, sprite, new Color(0f, 0f, 0f));
+
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(enemy, "Assets/Prefabs/Enemy_Kamikaze.prefab");
+        DestroyImmediate(enemy);
+        return prefab;
+    }
+
+    // ============================================================
     // PREFAB DO INIMIGO PLAYER SHOOTER (Roxo)
     // ============================================================
     static GameObject CreatePlayerShooterPrefab(Sprite sprite, GameObject purpleBulletPrefab)
@@ -793,7 +849,7 @@ public class SetupGameScene : Editor
     // ============================================================
     // GAME MANAGER
     // ============================================================
-    static GameObject CreateGameManager(GameObject antiCorpoPrefab, GameObject playerShooterPrefab, GameObject hudCanvas)
+    static GameObject CreateGameManager(GameObject antiCorpoPrefab, GameObject playerShooterPrefab, GameObject kamikazePrefab, GameObject hudCanvas)
     {
         GameObject gmObj = new GameObject("GameManager");
         GameManager gm = gmObj.AddComponent<GameManager>();
@@ -803,10 +859,11 @@ public class SetupGameScene : Editor
         gm.currentPhase = 1;
         gm.antiCorpoPrefab = antiCorpoPrefab;
         gm.playerShooterPrefab = playerShooterPrefab;
-        gm.baseSpawnInterval = 4f;
-        gm.minSpawnInterval = 1.5f;
-        gm.maxTotalEnemies = 5;
-        gm.maxPerType = 2;
+        gm.kamikazePrefab = kamikazePrefab;
+        gm.baseSpawnInterval = 2.5f;
+        gm.minSpawnInterval = 1f;
+        gm.maxTotalEnemies = 8;
+        gm.maxPerType = 3;
         gm.arenaMinX = -9f;
         gm.arenaMaxX = 9f;
         gm.arenaMinY = 2f;

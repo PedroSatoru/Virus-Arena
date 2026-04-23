@@ -33,12 +33,16 @@ public class GameManager : MonoBehaviour
     [Header("Prefabs dos Inimigos")]
     public GameObject antiCorpoPrefab;       // Atirador Anti-Corpo (Amarelo)
     public GameObject playerShooterPrefab;   // Atirador Anti-Player (Roxo)
+    public GameObject kamikazePrefab;        // Kamikaze (Laranja/Vermelho escuro)
+
+    [Header("Escalonamento por Tempo")]
+    public float speedMultiplier = 1f;
 
     [Header("Spawn de Inimigos")]
-    public float baseSpawnInterval = 4f;
-    public float minSpawnInterval = 1.5f;
-    public int maxTotalEnemies = 5;          // Máximo total em tela
-    public int maxPerType = 2;               // Máximo de cada tipo
+    public float baseSpawnInterval = 2.5f;
+    public float minSpawnInterval = 1f;
+    public int maxTotalEnemies = 8;          // Máximo total em tela
+    public int maxPerType = 3;               // Máximo de cada tipo
 
     [Header("Arena")]
     public float arenaMinX = -9f;
@@ -99,8 +103,11 @@ public class GameManager : MonoBehaviour
     {
         if (isGameOver || isPaused) return;
 
-        // Timer
+        // Tempo e Speed Scaling
         timeRemaining -= Time.deltaTime;
+        float minutesPassed = (totalTime - timeRemaining) / 60f;
+        speedMultiplier = 1f + (minutesPassed * 0.1f); // 10% de aumento por minuto
+
         if (timeRemaining <= 0f)
         {
             timeRemaining = 0f;
@@ -108,8 +115,8 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // Spawn
-        spawnTimer -= Time.deltaTime;
+        // Spawn (agora escala com velocidade, ou seja, nasce mais rápido)
+        spawnTimer -= Time.deltaTime * speedMultiplier;
         if (spawnTimer <= 0f)
         {
             TrySpawnEnemy();
@@ -127,35 +134,49 @@ public class GameManager : MonoBehaviour
         // Contar ativos
         int antiCorpoCount = FindObjectsByType<EnemyShooter>(FindObjectsSortMode.None).Length;
         int playerShooterCount = FindObjectsByType<EnemyPlayerShooter>(FindObjectsSortMode.None).Length;
-        int totalCount = antiCorpoCount + playerShooterCount;
+        int kamikazeCount = FindObjectsByType<EnemyKamikaze>(FindObjectsSortMode.None).Length;
+        int totalCount = antiCorpoCount + playerShooterCount + kamikazeCount;
 
         if (totalCount >= maxTotalEnemies) return;
 
-        Vector3 spawnPos = GetRandomSpawnPos();
-
-        // Determinar qual tipo pode spawnar
-        bool canSpawnAntiCorpo = antiCorpoPrefab != null && antiCorpoCount < maxPerType;
+        // Amarelos (AntiCorpo) devem ter preferência, então não ficam restritos ao maxPerType
+        bool canSpawnAntiCorpo = antiCorpoPrefab != null && antiCorpoCount < maxTotalEnemies;
         bool canSpawnPlayerShooter = playerShooterPrefab != null && playerShooterCount < maxPerType;
+        bool canSpawnKamikaze = kamikazePrefab != null && kamikazeCount < maxPerType;
 
-        if (!canSpawnAntiCorpo && !canSpawnPlayerShooter) return;
+        if (!canSpawnAntiCorpo && !canSpawnPlayerShooter && !canSpawnKamikaze) return;
 
-        // Alternar entre tipos disponíveis
         GameObject chosenPrefab = null;
-        if (canSpawnAntiCorpo && canSpawnPlayerShooter)
+        
+        // Probabilidade ponderada: 60% Amarelo, 20% Roxo, 20% Kamikaze
+        float roll = Random.value;
+        if (roll < 0.6f && canSpawnAntiCorpo) chosenPrefab = antiCorpoPrefab;
+        else if (roll < 0.8f && canSpawnPlayerShooter) chosenPrefab = playerShooterPrefab;
+        else if (canSpawnKamikaze) chosenPrefab = kamikazePrefab;
+        
+        // Fallback
+        if (chosenPrefab == null)
         {
-            // Alternar: se nextEnemyTypeIndex é par → AntiCorpo, ímpar → PlayerShooter
-            chosenPrefab = (nextEnemyTypeIndex % 2 == 0) ? antiCorpoPrefab : playerShooterPrefab;
-        }
-        else if (canSpawnAntiCorpo)
-        {
-            chosenPrefab = antiCorpoPrefab;
-        }
-        else
-        {
-            chosenPrefab = playerShooterPrefab;
+            if (canSpawnAntiCorpo) chosenPrefab = antiCorpoPrefab;
+            else if (canSpawnPlayerShooter) chosenPrefab = playerShooterPrefab;
+            else if (canSpawnKamikaze) chosenPrefab = kamikazePrefab;
         }
 
         nextEnemyTypeIndex++;
+
+        // Escolher posição baseada no inimigo
+        Vector3 spawnPos;
+        if (chosenPrefab == kamikazePrefab)
+        {
+            Vector3 playerPos = Vector3.zero;
+            GameObject pObj = GameObject.FindWithTag("Player");
+            if (pObj != null) playerPos = pObj.transform.position;
+            spawnPos = GetSafeKamikazeSpawnPos(playerPos);
+        }
+        else
+        {
+            spawnPos = GetRandomSpawnPos();
+        }
 
         GameObject enemy = Instantiate(chosenPrefab, spawnPos, Quaternion.identity);
 
@@ -183,6 +204,25 @@ public class GameManager : MonoBehaviour
         float x = Random.Range(arenaMinX + 2f, arenaMaxX - 2f);
         float y = Random.Range(arenaMinY, arenaMaxY);
         return new Vector3(x, y, 0f);
+    }
+
+    Vector3 GetSafeKamikazeSpawnPos(Vector3 playerPos)
+    {
+        // Spawnar no quadrante oposto ao player
+        float spawnX, spawnY;
+
+        if (playerPos.x < 0)
+            spawnX = Random.Range(2f, arenaMaxX - 1f); // Player esquerda -> Spawn direita
+        else
+            spawnX = Random.Range(arenaMinX + 1f, -2f); // Player direita -> Spawn esquerda
+
+        // O Y do player geralmente cai entre -4.5 e 4.5. Vamos assumir 0 como meio
+        if (playerPos.y < 0)
+            spawnY = Random.Range(1f, arenaMaxY - 1f); // Player embaixo -> Spawn em cima
+        else
+            spawnY = Random.Range(-3f, -1f); // Player em cima -> Spawn embaixo
+            
+        return new Vector3(spawnX, spawnY, 0f);
     }
 
     /// <summary>

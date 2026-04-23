@@ -43,8 +43,11 @@ public class EnemyShooter : MonoBehaviour
         // Flutuação vertical
         float newY = startY + Mathf.Sin(Time.time * floatSpeed) * floatAmplitude;
         
-        // Movimento horizontal
-        float newX = transform.position.x + moveDirection * horizontalSpeed * Time.deltaTime;
+        // Movimento horizontal (escala com GameManager)
+        float currentSpeed = horizontalSpeed;
+        if (GameManager.Instance != null) currentSpeed *= GameManager.Instance.speedMultiplier;
+        
+        float newX = transform.position.x + moveDirection * currentSpeed * Time.deltaTime;
         
         // Inverter direção nas bordas
         if (newX > arenaMaxX - 1f)

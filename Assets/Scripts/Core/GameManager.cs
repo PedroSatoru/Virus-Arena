@@ -74,10 +74,6 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        // Resgata o phase correto (1 ou 2)
-        currentPhase = GlobalState.currentPhase;
-        totalTime = currentPhase == 1 ? 10f : 180f;
-
         if (GlobalState.hasHeartAndBodyHP)
             bodyMaxHP *= 1.3f;
 
@@ -108,21 +104,12 @@ public class GameManager : MonoBehaviour
             WireButton(powerUpPanel.transform, "PowerUpBox/LifeBtn", ChoosePowerUpHeartAndBody);
         }
 
-        // Auto-fiação do painel de pausa e ajuste do HUD de texto
+        // Auto-fiação do painel de pausa (buscar pelo HUDManager em runtime)
         HUDManager hud = FindFirstObjectByType<HUDManager>();
-        if (hud != null)
+        if (hud != null && hud.pausePanel != null)
         {
-            if (hud.pausePanel != null)
-            {
-                WireButton(hud.pausePanel.transform, "ContinueBtn", () => hud.TogglePause());
-                WireButton(hud.pausePanel.transform, "MenuBtn", ReturnToMenu);
-            }
-            
-            // Ajustar o texto do HUD dinamicamente para corresponder à fase conectada
-            if (hud.phaseNameText != null)
-            {
-                hud.phaseNameText.text = currentPhase == 1 ? "FASE 1 — PULMÃO" : "FASE 2 — CORAÇÃO";
-            }
+            WireButton(hud.pausePanel.transform, "ContinueBtn", () => hud.TogglePause());
+            WireButton(hud.pausePanel.transform, "MenuBtn", ReturnToMenu);
         }
 
         PlayerHealth playerHealth = FindFirstObjectByType<PlayerHealth>();
@@ -382,8 +369,18 @@ public class GameManager : MonoBehaviour
             if (ph != null) GlobalState.savedPlayerHearts = ph.currentHearts;
         }
 
-        GlobalState.currentPhase = 2; // Avança a fase internamente
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name); // Recarrega a mesma cena (única), o GameManager adaptará o contexto
+        // Avança de cena. Futuramente Fase 3 será tratada aqui (se currentPhase == 2, load Ph3)
+        if (currentPhase == 1)
+        {
+            GlobalState.currentPhase = 2; 
+            SceneManager.LoadScene("GameScene_Ph2");
+        }
+        else if (currentPhase == 2)
+        {
+            // Para não quebrar caso você faça algo após a fase 2
+            GlobalState.currentPhase = 3;
+            SceneManager.LoadScene("GameScene_Ph3"); // Futuramente
+        }
     }
 
     public void ReturnToMenu()

@@ -66,11 +66,26 @@ public class SetupGameScene : Editor
         return _cachedSprite;
     }
 
-    [MenuItem("Virus Arena/Setup Game Scene")]
-    public static void SetupScene()
+    [MenuItem("Virus Arena/Setup Game Scene - FASE 1")]
+    public static void SetupPhase1()
     {
         Sprite whiteSprite = GetPersistentWhiteSprite();
+        BuildPhase(1, "Assets/Scenes/GameScene.unity", whiteSprite);
+        UpdateBuildSettings();
+        Debug.Log("✅ GameScene (Fase 1) criada com sucesso!");
+    }
 
+    [MenuItem("Virus Arena/Setup Game Scene - FASE 2")]
+    public static void SetupPhase2()
+    {
+        Sprite whiteSprite = GetPersistentWhiteSprite();
+        BuildPhase(2, "Assets/Scenes/GameScene_Ph2.unity", whiteSprite);
+        UpdateBuildSettings();
+        Debug.Log("✅ GameScene_Ph2 (Fase 2) criada com sucesso!");
+    }
+
+    static void BuildPhase(int phase, string scenePath, Sprite whiteSprite)
+    {
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
         // ============ SETUP BASE ============
@@ -92,20 +107,15 @@ public class SetupGameScene : Editor
 
         CreateInitialEnemy(antiCorpoPrefab);
 
-        GameObject hudCanvas = CreateHUD();
+        GameObject hudCanvas = CreateHUD(phase);
 
-        GameObject gmObj = CreateGameManager(antiCorpoPrefab, playerShooterPrefab, kamikazePrefab, hudCanvas);
+        GameObject gmObj = CreateGameManager(antiCorpoPrefab, playerShooterPrefab, kamikazePrefab, hudCanvas, phase);
 
         PlayerShooting ps = player.GetComponent<PlayerShooting>();
         if (ps != null) ps.bulletPrefab = playerBulletPrefab;
 
         // Salvar cena
-        EditorSceneManager.SaveScene(scene, "Assets/Scenes/GameScene.unity");
-
-        // Atualizar Build Settings
-        UpdateBuildSettings();
-
-        Debug.Log("✅ Fases criadas com sucesso! (Cena única flexível)");
+        EditorSceneManager.SaveScene(scene, scenePath);
     }
 
     static void UpdateBuildSettings()
@@ -113,7 +123,8 @@ public class SetupGameScene : Editor
         var scenes = new EditorBuildSettingsScene[]
         {
             new EditorBuildSettingsScene("Assets/Scenes/MainMenu.unity", true),
-            new EditorBuildSettingsScene("Assets/Scenes/GameScene.unity", true)
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene.unity", true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Ph2.unity", true)
         };
         EditorBuildSettings.scenes = scenes;
     }
@@ -642,7 +653,7 @@ public class SetupGameScene : Editor
     // ============================================================
     // HUD
     // ============================================================
-    static GameObject CreateHUD()
+    static GameObject CreateHUD(int phase)
     {
         // Canvas
         GameObject canvasObj = new GameObject("HUD_Canvas");
@@ -741,14 +752,16 @@ public class SetupGameScene : Editor
         hudMgr.heartIcons = heartImages;
 
         // --- FASE + TIMER (centro) ---
-        GameObject phaseText = CreateUIText("PhaseNameText", bottomPanel.transform, "FASE 1 — PULMÃO", 18, TextAnchor.MiddleCenter, Color.white);
+        string phaseStr = phase == 1 ? "FASE 1 — PULMÃO" : "FASE 2 — CORAÇÃO";
+        GameObject phaseText = CreateUIText("PhaseNameText", bottomPanel.transform, phaseStr, 18, TextAnchor.MiddleCenter, Color.white);
         RectTransform phaseRT = phaseText.GetComponent<RectTransform>();
         phaseRT.anchorMin = new Vector2(0.3f, 0.5f);
         phaseRT.anchorMax = new Vector2(0.7f, 1f);
         phaseRT.sizeDelta = Vector2.zero;
         hudMgr.phaseNameText = phaseText.GetComponent<Text>();
 
-        GameObject timerText = CreateUIText("TimerText", bottomPanel.transform, "0:10", 24, TextAnchor.MiddleCenter, new Color(1f, 0.8f, 0.8f));
+        string startTimerStr = phase == 1 ? "0:10" : "3:00";
+        GameObject timerText = CreateUIText("TimerText", bottomPanel.transform, startTimerStr, 24, TextAnchor.MiddleCenter, new Color(1f, 0.8f, 0.8f));
         RectTransform timerRT = timerText.GetComponent<RectTransform>();
         timerRT.anchorMin = new Vector2(0.3f, 0f);
         timerRT.anchorMax = new Vector2(0.7f, 0.55f);
@@ -868,14 +881,14 @@ public class SetupGameScene : Editor
     // ============================================================
     // GAME MANAGER
     // ============================================================
-    static GameObject CreateGameManager(GameObject antiCorpoPrefab, GameObject playerShooterPrefab, GameObject kamikazePrefab, GameObject hudCanvas)
+    static GameObject CreateGameManager(GameObject antiCorpoPrefab, GameObject playerShooterPrefab, GameObject kamikazePrefab, GameObject hudCanvas, int phase)
     {
         GameObject gmObj = new GameObject("GameManager");
         GameManager gm = gmObj.AddComponent<GameManager>();
-        gm.totalTime = 10f; // Será subscrito dinamicamente no código base para 10s ou 180s
+        gm.totalTime = phase == 1 ? 10f : 180f; // Fase 1 tem 10 seg, Fase 2 tem 3 min
         gm.bodyMaxHP = 1500f;
         gm.organMaxHP = 500f;
-        gm.currentPhase = 1;
+        gm.currentPhase = phase;
         gm.antiCorpoPrefab = antiCorpoPrefab;
         gm.playerShooterPrefab = playerShooterPrefab;
         gm.kamikazePrefab = kamikazePrefab;

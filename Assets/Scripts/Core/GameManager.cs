@@ -59,6 +59,9 @@ public class GameManager : MonoBehaviour
     public GameObject gameOverPanel;
     public Text gameOverReasonText;  // Texto de motivo (opcional)
 
+    [Header("UI Power Up (Apenas fase 1)")]
+    public GameObject powerUpPanel;
+
     // Spawn state
     private float spawnTimer;
     private int nextEnemyTypeIndex = 0; // Alterna entre tipos de inimigo
@@ -71,13 +74,25 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        // Resgata o phase correto (1 ou 2)
+        currentPhase = GlobalState.currentPhase;
+        totalTime = currentPhase == 1 ? 10f : 180f;
+
+        if (GlobalState.hasHeartAndBodyHP)
+            bodyMaxHP *= 1.3f;
+
+        if (GlobalState.savedBodyHP > 0f)
+            bodyCurrentHP = GlobalState.savedBodyHP;
+        else
+            bodyCurrentHP = bodyMaxHP;
+
         timeRemaining = totalTime;
-        bodyCurrentHP = bodyMaxHP;
         organCurrentHP = organMaxHP;
         damageMultiplier = currentPhase;
         spawnTimer = 2f;
 
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
+        if (powerUpPanel != null) powerUpPanel.SetActive(false);
 
         // Auto-fiação dos botões do Game Over (via Transform.Find - funciona em objetos inativos)
         if (gameOverPanel != null)
@@ -86,12 +101,28 @@ public class GameManager : MonoBehaviour
             WireButton(gameOverPanel.transform, "GoMenuBtn", ReturnToMenu);
         }
 
-        // Auto-fiação do painel de pausa (buscar pelo HUDManager em runtime)
-        HUDManager hud = FindFirstObjectByType<HUDManager>();
-        if (hud != null && hud.pausePanel != null)
+        if (powerUpPanel != null)
         {
-            WireButton(hud.pausePanel.transform, "ContinueBtn", () => hud.TogglePause());
-            WireButton(hud.pausePanel.transform, "MenuBtn", ReturnToMenu);
+            WireButton(powerUpPanel.transform, "PowerUpBox/TripleBtn", ChoosePowerUpTripleShot);
+            WireButton(powerUpPanel.transform, "PowerUpBox/SpeedBtn", ChoosePowerUpSpeedBoost);
+            WireButton(powerUpPanel.transform, "PowerUpBox/LifeBtn", ChoosePowerUpHeartAndBody);
+        }
+
+        // Auto-fiação do painel de pausa e ajuste do HUD de texto
+        HUDManager hud = FindFirstObjectByType<HUDManager>();
+        if (hud != null)
+        {
+            if (hud.pausePanel != null)
+            {
+                WireButton(hud.pausePanel.transform, "ContinueBtn", () => hud.TogglePause());
+                WireButton(hud.pausePanel.transform, "MenuBtn", ReturnToMenu);
+            }
+            
+            // Ajustar o texto do HUD dinamicamente para corresponder à fase conectada
+            if (hud.phaseNameText != null)
+            {
+                hud.phaseNameText.text = currentPhase == 1 ? "FASE 1 — PULMÃO" : "FASE 2 — CORAÇÃO";
+            }
         }
 
         PlayerHealth playerHealth = FindFirstObjectByType<PlayerHealth>();
@@ -239,7 +270,15 @@ public class GameManager : MonoBehaviour
         if (organCurrentHP <= 0f)
         {
             organCurrentHP = 0f;
-            isOrganDead = true;
+            if (!isOrganDead)
+            {
+                isOrganDead = true;
+                if (currentPhase == 1)
+                {
+                    OnPhaseCompleted();
+                    return;
+                }
+            }
         }
 
         if (bodyCurrentHP <= 0f)
@@ -293,18 +332,71 @@ public class GameManager : MonoBehaviour
 
     void OnPhaseCompleted()
     {
+        isGameOver = true;
         Debug.Log($"Fase {currentPhase} completada! Órgão morto: {isOrganDead}");
+
+        if (currentPhase == 1 && powerUpPanel != null)
+        {
+            powerUpPanel.SetActive(true);
+            StartCoroutine(SlowTimeAndStop());
+        }
+    }
+
+    // ==== Escolhas de PowerUP ====
+    public void ChoosePowerUpTripleShot()
+    {
+        GlobalState.hasTripleShot = true;
+        AdvanceToNextPhase();
+    }
+
+    public void ChoosePowerUpSpeedBoost()
+    {
+        GlobalState.hasSpeedBoost = true;
+        AdvanceToNextPhase();
+    }
+
+    public void ChoosePowerUpHeartAndBody()
+    {
+        GlobalState.hasHeartAndBodyHP = true;
+        
+        // Aumenta vida limitando estrito e recupera exatamente o tanto que aumentou
+        float gain = bodyMaxHP * 0.3f;
+        GlobalState.savedBodyHP = bodyCurrentHP + gain;
+
+        PlayerHealth ph = FindFirstObjectByType<PlayerHealth>();
+        if (ph != null)
+            GlobalState.savedPlayerHearts = ph.currentHearts + 1;
+        else
+            GlobalState.savedPlayerHearts = 6;
+            
+        AdvanceToNextPhase();
+    }
+
+    void AdvanceToNextPhase()
+    {
+        Time.timeScale = 1f;
+        if (!GlobalState.hasHeartAndBodyHP)
+        {
+            GlobalState.savedBodyHP = bodyCurrentHP;
+            PlayerHealth ph = FindFirstObjectByType<PlayerHealth>();
+            if (ph != null) GlobalState.savedPlayerHearts = ph.currentHearts;
+        }
+
+        GlobalState.currentPhase = 2; // Avança a fase internamente
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name); // Recarrega a mesma cena (única), o GameManager adaptará o contexto
     }
 
     public void ReturnToMenu()
     {
         Time.timeScale = 1f;
+        GlobalState.ResetState();
         SceneManager.LoadScene("MainMenu");
     }
 
     public void RestartPhase()
     {
         Time.timeScale = 1f;
+        GlobalState.ResetState();
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 

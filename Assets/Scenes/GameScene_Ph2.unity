@@ -1517,13 +1517,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53b07eaaecff74b4d83332506a8dffeb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  totalTime: 10
+  totalTime: 180
   timeRemaining: 0
   bodyMaxHP: 1500
   bodyCurrentHP: 0
   organMaxHP: 500
   organCurrentHP: 0
-  currentPhase: 1
+  currentPhase: 2
   damageMultiplier: 1
   antiCorpoPrefab: {fileID: 1182592919336906477, guid: 889ab9fd51bf8964e9ee9e82f9f3c1c9, type: 3}
   playerShooterPrefab: {fileID: 5658579029468682564, guid: 19e38cbf73bc58d4ebc600345050506f, type: 3}
@@ -1628,7 +1628,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: "FASE 1 \u2014 PULM\xC3O"
+  m_Text: "FASE 2 \u2014 CORA\xC7\xC3O"
 --- !u!222 &526925303
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1865,7 +1865,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: 0:10
+  m_Text: 3:00
 --- !u!222 &570098800
 CanvasRenderer:
   m_ObjectHideFlags: 0

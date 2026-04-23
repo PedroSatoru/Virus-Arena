@@ -66,29 +66,41 @@ public class PlayerShooting : MonoBehaviour
 
     void Fire(Vector2 direction)
     {
-        if (bulletPrefab == null) return;
-
-        Vector3 spawnPos = firePoint != null ? firePoint.position : transform.position;
-        
-        GameObject bullet = Instantiate(bulletPrefab, spawnPos, Quaternion.identity);
-        
-        // Configurar rotação do projétil
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        bullet.transform.rotation = Quaternion.Euler(0, 0, angle);
-
-        // Configurar projétil
-        Projectile proj = bullet.GetComponent<Projectile>();
-        if (proj != null)
+        if (GlobalState.hasTripleShot)
         {
-            proj.Initialize(direction, bulletSpeed, Projectile.BulletType.PlayerBullet);
+            float[] angles = { -15f, 0f, 15f };
+            foreach (float offset in angles)
+            {
+                SpawnBullet(direction, offset);
+            }
         }
         else
         {
-            // Fallback: mover com Rigidbody2D
+            SpawnBullet(direction, 0f);
+        }
+    }
+
+    void SpawnBullet(Vector2 direction, float angleOffset)
+    {
+        Vector3 spawnPos = firePoint != null ? firePoint.position : transform.position;
+        GameObject bullet = Instantiate(bulletPrefab, spawnPos, Quaternion.identity);
+
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg + angleOffset;
+        bullet.transform.rotation = Quaternion.Euler(0, 0, angle);
+
+        Vector2 adjustedDirection = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
+
+        Projectile proj = bullet.GetComponent<Projectile>();
+        if (proj != null)
+        {
+            proj.Initialize(adjustedDirection, bulletSpeed, Projectile.BulletType.PlayerBullet);
+        }
+        else
+        {
             Rigidbody2D bulletRb = bullet.GetComponent<Rigidbody2D>();
             if (bulletRb != null)
             {
-                bulletRb.linearVelocity = direction * bulletSpeed;
+                bulletRb.linearVelocity = adjustedDirection * bulletSpeed;
             }
         }
     }

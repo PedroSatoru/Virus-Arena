@@ -26,7 +26,20 @@ public class PlayerHealth : MonoBehaviour
 
     void Awake()
     {
-        currentHearts = maxHearts;
+        if (GlobalState.hasHeartAndBodyHP)
+        {
+            maxHearts += 1;
+        }
+
+        if (GlobalState.savedPlayerHearts > 0)
+        {
+            currentHearts = GlobalState.savedPlayerHearts;
+        }
+        else
+        {
+            currentHearts = maxHearts;
+        }
+
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
             originalColor = spriteRenderer.color;

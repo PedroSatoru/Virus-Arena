@@ -30,6 +30,11 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         
+        if (GlobalState.hasSpeedBoost)
+        {
+            moveSpeed *= 1.3f;
+        }
+
         // Configurar Rigidbody2D
         rb.gravityScale = 3f;
         rb.freezeRotation = true;

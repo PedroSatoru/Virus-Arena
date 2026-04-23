@@ -69,28 +69,17 @@ public class SetupGameScene : Editor
     [MenuItem("Virus Arena/Setup Game Scene")]
     public static void SetupScene()
     {
-        // Criar uma nova cena limpa
-        var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-
-        // Garantir sprite persistente
         Sprite whiteSprite = GetPersistentWhiteSprite();
 
-        // ============ CÂMERA 2D com URP ============
+        var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+        // ============ SETUP BASE ============
         CreateCamera();
-
-        // ============ ILUMINAÇÃO 2D (URP) ============
         CreateLighting();
-
-        // ============ FUNDO ============
         CreateBackground(whiteSprite);
-
-        // ============ ARENA ============
         GameObject arenaRoot = CreateArena(whiteSprite);
-
-        // ============ PLAYER ============
         GameObject player = CreatePlayer(whiteSprite);
 
-        // ============ PREFABS ============
         if (!AssetDatabase.IsValidFolder("Assets/Prefabs"))
             AssetDatabase.CreateFolder("Assets", "Prefabs");
 
@@ -101,26 +90,22 @@ public class SetupGameScene : Editor
         GameObject playerShooterPrefab = CreatePlayerShooterPrefab(whiteSprite, purpleBulletPrefab);
         GameObject kamikazePrefab = CreateKamikazePrefab(whiteSprite);
 
-        // ============ INIMIGO INICIAL ============
         CreateInitialEnemy(antiCorpoPrefab);
 
-        // ============ HUD ============
         GameObject hudCanvas = CreateHUD();
 
-        // ============ GAME MANAGER ============
         GameObject gmObj = CreateGameManager(antiCorpoPrefab, playerShooterPrefab, kamikazePrefab, hudCanvas);
 
-        // ============ CONECTAR REFERÊNCIAS ============
         PlayerShooting ps = player.GetComponent<PlayerShooting>();
         if (ps != null) ps.bulletPrefab = playerBulletPrefab;
 
         // Salvar cena
         EditorSceneManager.SaveScene(scene, "Assets/Scenes/GameScene.unity");
-        
+
         // Atualizar Build Settings
         UpdateBuildSettings();
-        
-        Debug.Log("✅ GameScene (Fase 1 - Pulmão) criada com sucesso!");
+
+        Debug.Log("✅ Fases criadas com sucesso! (Cena única flexível)");
     }
 
     static void UpdateBuildSettings()
@@ -128,7 +113,7 @@ public class SetupGameScene : Editor
         var scenes = new EditorBuildSettingsScene[]
         {
             new EditorBuildSettingsScene("Assets/Scenes/MainMenu.unity", true),
-            new EditorBuildSettingsScene("Assets/Scenes/GameScene.unity", true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene.unity", true)
         };
         EditorBuildSettings.scenes = scenes;
     }
@@ -756,14 +741,14 @@ public class SetupGameScene : Editor
         hudMgr.heartIcons = heartImages;
 
         // --- FASE + TIMER (centro) ---
-        GameObject phaseText = CreateUIText("PhaseNameText", bottomPanel.transform, "FASE 1 \u2014 PULM\u00c3O", 18, TextAnchor.MiddleCenter, Color.white);
+        GameObject phaseText = CreateUIText("PhaseNameText", bottomPanel.transform, "FASE 1 — PULMÃO", 18, TextAnchor.MiddleCenter, Color.white);
         RectTransform phaseRT = phaseText.GetComponent<RectTransform>();
         phaseRT.anchorMin = new Vector2(0.3f, 0.5f);
         phaseRT.anchorMax = new Vector2(0.7f, 1f);
         phaseRT.sizeDelta = Vector2.zero;
         hudMgr.phaseNameText = phaseText.GetComponent<Text>();
 
-        GameObject timerText = CreateUIText("TimerText", bottomPanel.transform, "3:00", 24, TextAnchor.MiddleCenter, new Color(1f, 0.8f, 0.8f));
+        GameObject timerText = CreateUIText("TimerText", bottomPanel.transform, "0:10", 24, TextAnchor.MiddleCenter, new Color(1f, 0.8f, 0.8f));
         RectTransform timerRT = timerText.GetComponent<RectTransform>();
         timerRT.anchorMin = new Vector2(0.3f, 0f);
         timerRT.anchorMax = new Vector2(0.7f, 0.55f);
@@ -843,6 +828,40 @@ public class SetupGameScene : Editor
 
         goPanel.SetActive(false);
 
+        // ==== POWER UP UI (Sempre gera mas só usa na fase 1) ====
+        GameObject pUpPanel = CreateUIImage("PowerUpPanel", canvasObj.transform, new Color(1f, 1f, 1f, 0.95f)); // Tela clara tipo o sketch
+        RectTransform pUpRT = pUpPanel.GetComponent<RectTransform>();
+        pUpRT.anchorMin = Vector2.zero;
+        pUpRT.anchorMax = Vector2.one;
+        pUpRT.sizeDelta = Vector2.zero;
+
+        // Fundo simulado do painel quadrado
+        GameObject pBox = CreateUIImage("PowerUpBox", pUpPanel.transform, new Color(0.92f, 0.92f, 0.95f, 1f));
+        RectTransform pBoxRT = pBox.GetComponent<RectTransform>();
+        pBoxRT.anchorMin = new Vector2(0.5f, 0.5f);
+        pBoxRT.anchorMax = new Vector2(0.5f, 0.5f);
+        pBoxRT.sizeDelta = new Vector2(400, 450);
+        
+        CreateUIText("Title", pBox.transform, "DNA UPGRADES", 28, TextAnchor.MiddleCenter, new Color(0.2f, 0.2f, 0.2f)).GetComponent<Text>().fontStyle = FontStyle.Bold;
+        pBox.transform.Find("Title").GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 160);
+
+        CreateUIButton("TripleBtn", pBox.transform, "1. TRIPLE SHOT", new Vector2(0, 70), new Vector2(300, 60), Color.white);
+        CreateUIButton("SpeedBtn", pBox.transform, "2. SPEED BOOST", new Vector2(0, -10), new Vector2(300, 60), new Color(0.85f, 0.85f, 0.85f));
+        CreateUIButton("LifeBtn", pBox.transform, "3. EXTRA <3 + 30% LIFE", new Vector2(0, -90), new Vector2(300, 60), Color.white);
+
+        // Ajusta as cores das bordas e texto
+        foreach(Transform child in pBox.transform)
+        {
+            if (child.name.EndsWith("Btn"))
+            {
+                child.GetComponent<Image>().color = new Color(0.8f, 0.8f, 0.8f);
+                var txt = child.Find(child.name + "_Txt").GetComponent<Text>();
+                txt.color = Color.black;
+            }
+        }
+
+        pUpPanel.SetActive(false);
+
         return canvasObj;
     }
 
@@ -853,7 +872,7 @@ public class SetupGameScene : Editor
     {
         GameObject gmObj = new GameObject("GameManager");
         GameManager gm = gmObj.AddComponent<GameManager>();
-        gm.totalTime = 180f;
+        gm.totalTime = 10f; // Será subscrito dinamicamente no código base para 10s ou 180s
         gm.bodyMaxHP = 1500f;
         gm.organMaxHP = 500f;
         gm.currentPhase = 1;
@@ -875,6 +894,10 @@ public class SetupGameScene : Editor
             Transform goPanelTransform = hudCanvas.transform.Find("GameOverPanel");
             if (goPanelTransform != null)
                 gm.gameOverPanel = goPanelTransform.gameObject;
+
+            Transform pUpPanelTransform = hudCanvas.transform.Find("PowerUpPanel");
+            if (pUpPanelTransform != null)
+                gm.powerUpPanel = pUpPanelTransform.gameObject;
         }
 
         return gmObj;

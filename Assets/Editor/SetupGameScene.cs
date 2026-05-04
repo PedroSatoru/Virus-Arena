@@ -92,7 +92,7 @@ public class SetupGameScene : Editor
         CreateCamera();
         CreateLighting();
         CreateBackground(whiteSprite);
-        GameObject arenaRoot = CreateArena(whiteSprite);
+        GameObject arenaRoot = CreateArena(whiteSprite, phase);
         GameObject player = CreatePlayer(whiteSprite);
 
         if (!AssetDatabase.IsValidFolder("Assets/Prefabs"))
@@ -203,7 +203,7 @@ public class SetupGameScene : Editor
     // ============================================================
     // ARENA
     // ============================================================
-    static GameObject CreateArena(Sprite sprite)
+    static GameObject CreateArena(Sprite sprite, int phase)
     {
         GameObject arenaRoot = new GameObject("Arena");
         ArenaManager am = arenaRoot.AddComponent<ArenaManager>();
@@ -246,6 +246,27 @@ public class SetupGameScene : Editor
         ceiling.GetComponent<SpriteRenderer>().sortingOrder = 0;
         ceiling.transform.parent = arenaRoot.transform;
         am.ceilingRenderer = ceiling.GetComponent<SpriteRenderer>();
+
+        if (phase >= 2)
+        {
+            // Plataforma esquerda
+            GameObject leftPlat = CreateSprite("Platform_Left", sprite, new Color(0.4f, 0.2f, 0.25f),
+                new Vector3(-7.5f, -2.3f, 0), new Vector3(2f, 0.25f, 1f));
+            leftPlat.tag = "Arena";
+            leftPlat.layer = LayerMask.NameToLayer("Arena");
+            leftPlat.AddComponent<BoxCollider2D>();
+            leftPlat.GetComponent<SpriteRenderer>().sortingOrder = 0;
+            leftPlat.transform.parent = arenaRoot.transform;
+
+            // Plataforma direita
+            GameObject rightPlat = CreateSprite("Platform_Right", sprite, new Color(0.4f, 0.2f, 0.25f),
+                new Vector3(7.5f, -2.3f, 0), new Vector3(2f, 0.25f, 1f));
+            rightPlat.tag = "Arena";
+            rightPlat.layer = LayerMask.NameToLayer("Arena");
+            rightPlat.AddComponent<BoxCollider2D>();
+            rightPlat.GetComponent<SpriteRenderer>().sortingOrder = 0;
+            rightPlat.transform.parent = arenaRoot.transform;
+        }
 
         return arenaRoot;
     }
@@ -539,7 +560,9 @@ public class SetupGameScene : Editor
 
         Rigidbody2D rb = enemy.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
-        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.freezeRotation = true;
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
         EnemyHealth health = enemy.AddComponent<EnemyHealth>();
         health.maxHP = 2; // Pode aguentar 2 tiros por exemplo, ou 1. Vamos deixar 1.

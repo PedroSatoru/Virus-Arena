@@ -98,6 +98,13 @@ public class Projectile : MonoBehaviour
             return;
         }
 
+        // Destruir ao colidir com plataforma sem causar dano
+        if (other.name.Contains("Platform"))
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         // Destruir ao colidir com arena
         if (other.CompareTag("Arena") || other.CompareTag("ArenaFloor") 
             || other.CompareTag("ArenaWall") || other.CompareTag("ArenaCeiling"))
@@ -128,6 +135,13 @@ public class Projectile : MonoBehaviour
             return;
         }
 
+        // Destruir ao colidir com plataforma sem causar dano
+        if (other.name.Contains("Platform"))
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         // Colidir com superfícies da arena
         if (other.CompareTag("ArenaFloor") || other.CompareTag("ArenaWall") || other.CompareTag("ArenaCeiling"))
         {
@@ -149,6 +163,13 @@ public class Projectile : MonoBehaviour
         if (playerHealth != null)
         {
             playerHealth.TakeDamage(damage);
+            Destroy(gameObject);
+            return;
+        }
+
+        // Destruir ao colidir com plataforma sem causar dano
+        if (other.name.Contains("Platform"))
+        {
             Destroy(gameObject);
             return;
         }

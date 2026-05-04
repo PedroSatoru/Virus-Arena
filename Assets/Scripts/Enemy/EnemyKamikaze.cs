@@ -21,6 +21,7 @@ public class EnemyKamikaze : MonoBehaviour
 
     private Transform playerTransform;
     private EnemyHealth health;
+    private Rigidbody2D rb;
     private bool hasExploded = false;
 
     void Start()
@@ -31,6 +32,8 @@ public class EnemyKamikaze : MonoBehaviour
             health.OnEnemyDeath += HandleDeath;
         }
 
+        rb = GetComponent<Rigidbody2D>();
+
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -38,18 +41,19 @@ public class EnemyKamikaze : MonoBehaviour
         }
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (hasExploded) return;
 
         if (playerTransform != null)
         {
-            // Movimentação em direção ao player
+            // Movimentação em direção ao player usando MovePosition para deslizar em plataformas
             float currentSpeed = baseMoveSpeed;
             if (GameManager.Instance != null)
                 currentSpeed *= GameManager.Instance.speedMultiplier;
 
-            transform.position = Vector3.MoveTowards(transform.position, playerTransform.position, currentSpeed * Time.deltaTime);
+            Vector2 newPos = Vector2.MoveTowards(rb.position, playerTransform.position, currentSpeed * Time.fixedDeltaTime);
+            rb.MovePosition(newPos);
 
             // Verificar distância para explodir
             if (Vector2.Distance(transform.position, playerTransform.position) <= explosionRadius)

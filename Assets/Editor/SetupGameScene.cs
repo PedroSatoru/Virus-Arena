@@ -749,7 +749,9 @@ public class SetupGameScene : Editor
         bc.bulletSpeed = 7f;
         bc.bodyDamagePerAttack = 50f;
         bc.telegraphDuration = 1.5f;
-        bc.telegraphCeilingDuration = 2.5f;
+        bc.telegraphHighWallDuration = 2.5f;
+        bc.telegraphCeilingDuration = 3f;
+        bc.telegraphFloorDuration = 0.35f;
         bc.vulnerableDuration = 2.5f;
 
         // Espinhos maiores e mais ameaçadores (8 espinhos)

@@ -18,8 +18,10 @@ public class BossController : MonoBehaviour
     public BossState currentState = BossState.Idle;
 
     [Header("Configurações de Ataque")]
-    public float telegraphDuration = 2f;
+    public float telegraphDuration = 1.5f;
+    public float telegraphHighWallDuration = 2.5f;
     public float telegraphCeilingDuration = 3f;
+    public float telegraphFloorDuration = 0.35f;
     public float vulnerableDuration = 2.5f;
     public float bodyDamagePerAttack = 50f;
     public int playerDamage = 1;
@@ -63,30 +65,72 @@ public class BossController : MonoBehaviour
     {
         attackPatterns = new Vector2[2][];
 
-        // Padrão A — alvos bem espalhados, muitos para cima
+        // Padrão A — cobertura total da arena, só plataformas protegem
         attackPatterns[0] = new Vector2[]
         {
-            new Vector2(-7f, -4.5f),     // chão esquerda
-            new Vector2(7f, -4.5f),      // chão direita
-            new Vector2(-9f, -1f),       // parede esq baixa
-            new Vector2(9f, 1f),         // parede dir alta
-            new Vector2(-9f, 3f),        // parede esq alta
-            new Vector2(-4f, 4.5f),      // teto esquerda
-            new Vector2(2f, 4.5f),       // teto centro-dir
-            new Vector2(7f, 4.5f),       // teto direita
+            // Chão (6 tiros espalhados)
+            new Vector2(-8f, -4.5f),
+            new Vector2(-5f, -4.5f),
+            new Vector2(-2f, -4.5f),
+            new Vector2(2f, -4.5f),
+            new Vector2(5f, -4.5f),
+            new Vector2(8f, -4.5f),
+            // Parede esquerda (4 tiros)
+            new Vector2(-9f, -3f),
+            new Vector2(-9f, -1f),
+            new Vector2(-9f, 1f),
+            new Vector2(-9f, 3f),
+            // Parede direita (4 tiros)
+            new Vector2(9f, -3f),
+            new Vector2(9f, -1f),
+            new Vector2(9f, 1f),
+            new Vector2(9f, 3f),
+            // Teto (6 tiros espalhados)
+            new Vector2(-8f, 4.5f),
+            new Vector2(-5f, 4.5f),
+            new Vector2(-2f, 4.5f),
+            new Vector2(2f, 4.5f),
+            new Vector2(5f, 4.5f),
+            new Vector2(8f, 4.5f),
+            // Diagonais intermediárias (4 tiros)
+            new Vector2(-6f, -3f),
+            new Vector2(6f, -3f),
+            new Vector2(-6f, 3f),
+            new Vector2(6f, 3f),
         };
 
-        // Padrão B — posições alternativas, também muitas para cima
+        // Padrão B — mesma cobertura total, posições ligeiramente deslocadas
         attackPatterns[1] = new Vector2[]
         {
-            new Vector2(-4f, -4.5f),     // chão esq
-            new Vector2(4f, -4.5f),      // chão dir
-            new Vector2(9f, -2f),        // parede dir baixa
-            new Vector2(-9f, 0f),        // parede esq meio
-            new Vector2(9f, 3f),         // parede dir alta
-            new Vector2(-6f, 4.5f),      // teto esquerda
-            new Vector2(0f, 4.5f),       // teto centro
-            new Vector2(6f, 4.5f),       // teto direita
+            // Chão (6 tiros deslocados)
+            new Vector2(-7f, -4.5f),
+            new Vector2(-3.5f, -4.5f),
+            new Vector2(0f, -4.5f),
+            new Vector2(3.5f, -4.5f),
+            new Vector2(6f, -4.5f),
+            new Vector2(8.5f, -4.5f),
+            // Parede esquerda (4 tiros deslocados)
+            new Vector2(-9f, -2f),
+            new Vector2(-9f, 0f),
+            new Vector2(-9f, 2f),
+            new Vector2(-9f, 4f),
+            // Parede direita (4 tiros deslocados)
+            new Vector2(9f, -2f),
+            new Vector2(9f, 0f),
+            new Vector2(9f, 2f),
+            new Vector2(9f, 4f),
+            // Teto (6 tiros deslocados)
+            new Vector2(-7f, 4.5f),
+            new Vector2(-3.5f, 4.5f),
+            new Vector2(0f, 4.5f),
+            new Vector2(3.5f, 4.5f),
+            new Vector2(6f, 4.5f),
+            new Vector2(8.5f, 4.5f),
+            // Diagonais intermediárias (4 tiros deslocados)
+            new Vector2(-5f, -2f),
+            new Vector2(5f, -2f),
+            new Vector2(-5f, 2f),
+            new Vector2(5f, 2f),
         };
     }
 
@@ -105,6 +149,30 @@ public class BossController : MonoBehaviour
         StartCoroutine(BossCycle());
     }
 
+    Vector2 GetRandomYellowTarget()
+    {
+        // Usa sempre as probabilidades customizadas, nunca sobrepõe propositalmente
+        float r = Random.value;
+        if (r < 0.05f) // 5% teto
+        {
+            return new Vector2(Random.Range(-8f, 8f), 4.5f);
+        }
+        else if (r < 0.15f) // 10% parede alta (5% + 10% = 15%)
+        {
+            float x = Random.value > 0.5f ? 9f : -9f;
+            return new Vector2(x, Random.Range(1f, 3.5f));
+        }
+        else if (r < 0.60f) // 45% parede baixa (15% + 45% = 60%)
+        {
+            float x = Random.value > 0.5f ? 9f : -9f;
+            return new Vector2(x, Random.Range(-3f, 1f));
+        }
+        else // 40% chão
+        {
+            return new Vector2(Random.Range(-8f, 8f), -4.5f);
+        }
+    }
+
     IEnumerator BossCycle()
     {
         // Pequena pausa inicial antes do primeiro ataque
@@ -112,25 +180,44 @@ public class BossController : MonoBehaviour
 
         while (isActive)
         {
-            Vector2[] pattern = attackPatterns[currentPattern];
+            Vector2[] rawPurplePattern = attackPatterns[currentPattern];
             currentPattern = (currentPattern + 1) % 2;
 
-            // Sortear qual dos 8 tiros será o amarelo (corpo) — qualquer posição
-            int yellowIndex = Random.Range(0, pattern.Length);
+            // Sortear alvo amarelo (corpo)
+            Vector2 yellowTarget = GetRandomYellowTarget();
 
-            // Verificar se algum alvo é teto (y >= 4)
-            bool hasCeiling = false;
-            foreach (var target in pattern)
+            // Filtrar os alvos roxos para remover qualquer um que esteja muito próximo do amarelo
+            List<Vector2> filteredPurple = new List<Vector2>();
+            float minDistance = 1.5f; // Distância mínima para não considerar "junto"
+            foreach (var p in rawPurplePattern)
             {
-                if (target.y >= 4f) { hasCeiling = true; break; }
+                if (Vector2.Distance(p, yellowTarget) > minDistance)
+                {
+                    filteredPurple.Add(p);
+                }
             }
+            Vector2[] purplePattern = filteredPurple.ToArray();
 
             // === TELEGRAFAR ===
             currentState = BossState.Telegraphing;
             if (health != null) health.isInvulnerable = true;
 
-            float telegraphTime = hasCeiling ? telegraphCeilingDuration : telegraphDuration;
-            List<GameObject> beams = CreateBeamIndicators(pattern, yellowIndex);
+            // O tempo de telegrafia depende do alvo AMARELO
+            float telegraphTime = telegraphDuration;
+            if (yellowTarget.y >= 4f)
+            {
+                telegraphTime = telegraphCeilingDuration; // 3.0s
+            }
+            else if (yellowTarget.y >= 1f && (yellowTarget.x <= -8.5f || yellowTarget.x >= 8.5f))
+            {
+                telegraphTime = telegraphHighWallDuration; // 2.5s
+            }
+            else if (yellowTarget.y <= -4f)
+            {
+                telegraphTime = telegraphFloorDuration; // 0.35s
+            }
+
+            List<GameObject> beams = CreateBeamIndicators(purplePattern, yellowTarget);
 
             yield return new WaitForSeconds(telegraphTime);
 
@@ -142,7 +229,7 @@ public class BossController : MonoBehaviour
 
             // === ATACAR ===
             currentState = BossState.Attacking;
-            FireAttack(pattern, yellowIndex);
+            FireAttack(purplePattern, yellowTarget);
 
             // Aplicar dano direto ao corpo E órgão
             if (GameManager.Instance != null)
@@ -168,70 +255,84 @@ public class BossController : MonoBehaviour
         }
     }
 
-    List<GameObject> CreateBeamIndicators(Vector2[] pattern, int yellowIndex)
+    List<GameObject> CreateBeamIndicators(Vector2[] purplePattern, Vector2 yellowTarget)
     {
         List<GameObject> beams = new List<GameObject>();
 
-        for (int i = 0; i < pattern.Length; i++)
+        // Feixes Roxos
+        for (int i = 0; i < purplePattern.Length; i++)
         {
-            GameObject beamObj = new GameObject($"BossBeam_{i}");
+            GameObject beamObj = new GameObject($"BossBeamPurple_{i}");
             beamObj.transform.position = transform.position;
 
             LineRenderer lr = beamObj.AddComponent<LineRenderer>();
             lr.positionCount = 2;
             lr.SetPosition(0, transform.position);
-            lr.SetPosition(1, (Vector3)pattern[i]);
+            lr.SetPosition(1, (Vector3)purplePattern[i]);
             lr.startWidth = 0.08f;
             lr.endWidth = 0.08f;
             lr.sortingOrder = 20;
             lr.material = new Material(Shader.Find("Sprites/Default"));
 
-            if (i == yellowIndex)
-            {
-                // Feixe amarelo (ataque ao corpo) — posição aleatória
-                lr.startColor = new Color(1f, 0.9f, 0f, 0.6f);
-                lr.endColor = new Color(1f, 0.9f, 0f, 0.3f);
-            }
-            else
-            {
-                // Feixe roxo (ataque ao player)
-                lr.startColor = new Color(0.6f, 0f, 0.8f, 0.6f);
-                lr.endColor = new Color(0.6f, 0f, 0.8f, 0.3f);
-            }
+            lr.startColor = new Color(0.6f, 0f, 0.8f, 0.6f);
+            lr.endColor = new Color(0.6f, 0f, 0.8f, 0.3f);
 
             beamObj.AddComponent<BeamPulse>();
             beams.Add(beamObj);
         }
 
+        // Feixe Amarelo
+        GameObject yellowBeam = new GameObject("BossBeamYellow");
+        yellowBeam.transform.position = transform.position;
+        LineRenderer ylr = yellowBeam.AddComponent<LineRenderer>();
+        ylr.positionCount = 2;
+        ylr.SetPosition(0, transform.position);
+        ylr.SetPosition(1, (Vector3)yellowTarget);
+        ylr.startWidth = 0.08f;
+        ylr.endWidth = 0.08f;
+        ylr.sortingOrder = 21; // Por cima dos roxos
+        ylr.material = new Material(Shader.Find("Sprites/Default"));
+        ylr.startColor = new Color(1f, 0.9f, 0f, 0.6f);
+        ylr.endColor = new Color(1f, 0.9f, 0f, 0.3f);
+        yellowBeam.AddComponent<BeamPulse>();
+        beams.Add(yellowBeam);
+
         return beams;
     }
 
-    void FireAttack(Vector2[] pattern, int yellowIndex)
+    void FireAttack(Vector2[] purplePattern, Vector2 yellowTarget)
     {
-        for (int i = 0; i < pattern.Length; i++)
+        // Disparar Roxos
+        for (int i = 0; i < purplePattern.Length; i++)
         {
-            Vector2 direction = ((Vector2)pattern[i] - (Vector2)transform.position).normalized;
+            if (antiPlayerBulletPrefab == null) continue;
 
-            // O índice sorteado é amarelo (anti-corpo), resto = roxo (anti-player)
-            bool isYellow = (i == yellowIndex);
-            GameObject prefab = isYellow ? antiBodyBulletPrefab : antiPlayerBulletPrefab;
-            if (prefab == null) continue;
-
-            GameObject bullet = Instantiate(prefab, transform.position, Quaternion.identity);
-
-            // Projéteis do boss são maiores (2x)
+            Vector2 direction = ((Vector2)purplePattern[i] - (Vector2)transform.position).normalized;
+            GameObject bullet = Instantiate(antiPlayerBulletPrefab, transform.position, Quaternion.identity);
             bullet.transform.localScale *= 2f;
-
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             bullet.transform.rotation = Quaternion.Euler(0, 0, angle);
 
             Projectile proj = bullet.GetComponent<Projectile>();
             if (proj != null)
             {
-                Projectile.BulletType type = isYellow
-                    ? Projectile.BulletType.EnemyAntiBody
-                    : Projectile.BulletType.EnemyAntiPlayer;
-                proj.Initialize(direction, bulletSpeed, type);
+                proj.Initialize(direction, bulletSpeed, Projectile.BulletType.EnemyAntiPlayer);
+            }
+        }
+
+        // Disparar Amarelo
+        if (antiBodyBulletPrefab != null)
+        {
+            Vector2 direction = ((Vector2)yellowTarget - (Vector2)transform.position).normalized;
+            GameObject bullet = Instantiate(antiBodyBulletPrefab, transform.position, Quaternion.identity);
+            bullet.transform.localScale *= 2f;
+            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            bullet.transform.rotation = Quaternion.Euler(0, 0, angle);
+
+            Projectile proj = bullet.GetComponent<Projectile>();
+            if (proj != null)
+            {
+                proj.Initialize(direction, bulletSpeed, Projectile.BulletType.EnemyAntiBody);
             }
         }
     }

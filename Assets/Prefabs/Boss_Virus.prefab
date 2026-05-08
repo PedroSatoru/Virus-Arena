@@ -662,7 +662,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BossController
   currentState: 0
   telegraphDuration: 1.5
-  telegraphCeilingDuration: 2.5
+  telegraphHighWallDuration: 2.5
+  telegraphCeilingDuration: 3
+  telegraphFloorDuration: 0.35
   vulnerableDuration: 2.5
   bodyDamagePerAttack: 50
   playerDamage: 1

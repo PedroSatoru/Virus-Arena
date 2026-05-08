@@ -260,7 +260,8 @@ public class GameManager : MonoBehaviour
             if (!isOrganDead)
             {
                 isOrganDead = true;
-                if (currentPhase == 1)
+                // Fases 1 e 2: se o órgão morre, avança automaticamente
+                if (currentPhase <= 2)
                 {
                     OnPhaseCompleted();
                     return;
@@ -322,10 +323,18 @@ public class GameManager : MonoBehaviour
         isGameOver = true;
         Debug.Log($"Fase {currentPhase} completada! Órgão morto: {isOrganDead}");
 
-        if (currentPhase == 1 && powerUpPanel != null)
+        // Fases 1 e 2: mostrar painel de PowerUp antes de avançar
+        if (currentPhase <= 2 && powerUpPanel != null)
         {
             powerUpPanel.SetActive(true);
             StartCoroutine(SlowTimeAndStop());
+        }
+        else if (currentPhase == 3)
+        {
+            // Fase 3 completada — vitória (por enquanto volta ao menu)
+            Debug.Log("🎉 Todas as fases completadas! Vitória!");
+            // TODO: Tela de vitória / Boss
+            GameOver("VITÓRIA — VÍRUS DERROTADO!");
         }
     }
 
@@ -377,9 +386,8 @@ public class GameManager : MonoBehaviour
         }
         else if (currentPhase == 2)
         {
-            // Para não quebrar caso você faça algo após a fase 2
             GlobalState.currentPhase = 3;
-            SceneManager.LoadScene("GameScene_Ph3"); // Futuramente
+            SceneManager.LoadScene("GameScene_Ph3");
         }
     }
 

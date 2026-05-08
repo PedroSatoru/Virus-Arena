@@ -84,6 +84,15 @@ public class SetupGameScene : Editor
         Debug.Log("✅ GameScene_Ph2 (Fase 2) criada com sucesso!");
     }
 
+    [MenuItem("Virus Arena/Setup Game Scene - FASE 3")]
+    public static void SetupPhase3()
+    {
+        Sprite whiteSprite = GetPersistentWhiteSprite();
+        BuildPhase(3, "Assets/Scenes/GameScene_Ph3.unity", whiteSprite);
+        UpdateBuildSettings();
+        Debug.Log("✅ GameScene_Ph3 (Fase 3) criada com sucesso!");
+    }
+
     static void BuildPhase(int phase, string scenePath, Sprite whiteSprite)
     {
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -124,7 +133,8 @@ public class SetupGameScene : Editor
         {
             new EditorBuildSettingsScene("Assets/Scenes/MainMenu.unity", true),
             new EditorBuildSettingsScene("Assets/Scenes/GameScene.unity", true),
-            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Ph2.unity", true)
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Ph2.unity", true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Ph3.unity", true)
         };
         EditorBuildSettings.scenes = scenes;
     }
@@ -249,7 +259,7 @@ public class SetupGameScene : Editor
 
         if (phase >= 2)
         {
-            // Plataforma esquerda
+            // Plataforma esquerda (lateral)
             GameObject leftPlat = CreateSprite("Platform_Left", sprite, new Color(0.4f, 0.2f, 0.25f),
                 new Vector3(-7.5f, -2.3f, 0), new Vector3(2f, 0.25f, 1f));
             leftPlat.tag = "Arena";
@@ -258,7 +268,7 @@ public class SetupGameScene : Editor
             leftPlat.GetComponent<SpriteRenderer>().sortingOrder = 0;
             leftPlat.transform.parent = arenaRoot.transform;
 
-            // Plataforma direita
+            // Plataforma direita (lateral)
             GameObject rightPlat = CreateSprite("Platform_Right", sprite, new Color(0.4f, 0.2f, 0.25f),
                 new Vector3(7.5f, -2.3f, 0), new Vector3(2f, 0.25f, 1f));
             rightPlat.tag = "Arena";
@@ -266,6 +276,42 @@ public class SetupGameScene : Editor
             rightPlat.AddComponent<BoxCollider2D>();
             rightPlat.GetComponent<SpriteRenderer>().sortingOrder = 0;
             rightPlat.transform.parent = arenaRoot.transform;
+        }
+
+        if (phase >= 3)
+        {
+            // Plataformas centrais móveis (sobem e descem dessincronizadas)
+            Color movingPlatColor = new Color(0.35f, 0.18f, 0.3f);
+
+            // Altura base = -0.3f, Amplitude = 2f => Min = -2.3f (altura das plataformas fixas), Max = 1.7f
+            // Comprimento aumentado de 1.5 para 2.8 para possibilitar pulo entre elas
+            // Plataforma central esquerda
+            GameObject centerLeft = CreateSprite("Platform_CenterLeft", sprite, movingPlatColor,
+                new Vector3(-3.5f, -0.3f, 0), new Vector3(2.0f, 0.25f, 1f));
+            centerLeft.tag = "Arena";
+            centerLeft.layer = LayerMask.NameToLayer("Arena");
+            centerLeft.AddComponent<BoxCollider2D>();
+            centerLeft.AddComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Kinematic;
+            centerLeft.GetComponent<SpriteRenderer>().sortingOrder = 0;
+            centerLeft.transform.parent = arenaRoot.transform;
+            MovingPlatform mpLeft = centerLeft.AddComponent<MovingPlatform>();
+            mpLeft.speed = 1.2f;
+            mpLeft.amplitude = 2f;
+            mpLeft.phaseOffset = 0f;
+
+            // Plataforma central direita
+            GameObject centerRight = CreateSprite("Platform_CenterRight", sprite, movingPlatColor,
+                new Vector3(3.5f, -0.3f, 0), new Vector3(2.0f, 0.25f, 1f));
+            centerRight.tag = "Arena";
+            centerRight.layer = LayerMask.NameToLayer("Arena");
+            centerRight.AddComponent<BoxCollider2D>();
+            centerRight.AddComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Kinematic;
+            centerRight.GetComponent<SpriteRenderer>().sortingOrder = 0;
+            centerRight.transform.parent = arenaRoot.transform;
+            MovingPlatform mpRight = centerRight.AddComponent<MovingPlatform>();
+            mpRight.speed = 1.5f;
+            mpRight.amplitude = 2f;
+            mpRight.phaseOffset = 3.14f; // Dessincronizada
         }
 
         return arenaRoot;
@@ -292,7 +338,7 @@ public class SetupGameScene : Editor
 
         PlayerController pc = player.AddComponent<PlayerController>();
         pc.moveSpeed = 7f;
-        pc.jumpForce = 12f;
+        pc.jumpForce = 13.2f; // Salto levemente reduzido, ajustado para as novas plataformas
         pc.minX = -8.5f;
         pc.maxX = 8.5f;
         pc.groundLayer = LayerMask.GetMask("Arena");
@@ -775,7 +821,10 @@ public class SetupGameScene : Editor
         hudMgr.heartIcons = heartImages;
 
         // --- FASE + TIMER (centro) ---
-        string phaseStr = phase == 1 ? "FASE 1 — PULMÃO" : "FASE 2 — CORAÇÃO";
+        string phaseStr;
+        if (phase == 1) phaseStr = "FASE 1 \u2014 PULM\u00c3O";
+        else if (phase == 2) phaseStr = "FASE 2 \u2014 CORA\u00c7\u00c3O";
+        else phaseStr = "FASE 3 \u2014 C\u00c9REBRO";
         GameObject phaseText = CreateUIText("PhaseNameText", bottomPanel.transform, phaseStr, 18, TextAnchor.MiddleCenter, Color.white);
         RectTransform phaseRT = phaseText.GetComponent<RectTransform>();
         phaseRT.anchorMin = new Vector2(0.3f, 0.5f);
@@ -908,7 +957,7 @@ public class SetupGameScene : Editor
     {
         GameObject gmObj = new GameObject("GameManager");
         GameManager gm = gmObj.AddComponent<GameManager>();
-        gm.totalTime = phase == 1 ? 10f : 180f; // Fase 1 tem 10 seg, Fase 2 tem 3 min
+        gm.totalTime = phase == 1 ? 10f : 180f; // Fase 1 tem 10 seg, Fases 2 e 3 têm 3 min
         gm.bodyMaxHP = 1500f;
         gm.organMaxHP = 500f;
         gm.currentPhase = phase;
@@ -921,7 +970,8 @@ public class SetupGameScene : Editor
         gm.maxPerType = 3;
         gm.arenaMinX = -9f;
         gm.arenaMaxX = 9f;
-        gm.arenaMinY = 2f;
+        // Na fase 3 os inimigos podem descer mais baixo (plataformas móveis no meio)
+        gm.arenaMinY = phase >= 3 ? -2f : 2f;
         gm.arenaMaxY = 4f;
 
         // Transform.Find funciona em objetos inativos (ao contrario de GameObject.Find)

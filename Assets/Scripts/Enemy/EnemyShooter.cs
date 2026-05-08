@@ -86,14 +86,29 @@ public class EnemyShooter : MonoBehaviour
                 else
                     targetPos = GetWallTarget();
                 break;
-            case 3: // Cérebro - tudo
+            case 3: // Cérebro - tudo, com chance bem reduzida de atirar no teto
                 float rand = Random.value;
-                if (rand < 0.4f)
-                    targetPos = GetFloorTarget();
-                else if (rand < 0.7f)
-                    targetPos = GetWallTarget();
+                bool isLow = transform.position.y < 0f;
+                if (isLow)
+                {
+                    // Quando está baixo: 60% chão, 30% paredes, 10% teto
+                    if (rand < 0.6f)
+                        targetPos = GetFloorTarget();
+                    else if (rand < 0.9f)
+                        targetPos = GetWallTarget();
+                    else
+                        targetPos = GetCeilingTarget();
+                }
                 else
-                    targetPos = GetCeilingTarget();
+                {
+                    // Posição alta normal: 60% chão, 35% paredes, 5% teto
+                    if (rand < 0.6f)
+                        targetPos = GetFloorTarget();
+                    else if (rand < 0.95f)
+                        targetPos = GetWallTarget();
+                    else
+                        targetPos = GetCeilingTarget();
+                }
                 break;
             default:
                 targetPos = GetFloorTarget();

@@ -220,7 +220,7 @@ public class SetupGameScene : Editor
 
         // Parede esquerda
         GameObject leftWall = CreateSprite("Arena_LeftWall", sprite, new Color(0.35f, 0.15f, 0.2f, 0.8f),
-            new Vector3(-ARENA_HALF_W - WALL_THICKNESS / 2f, 0, 0), new Vector3(WALL_THICKNESS, ARENA_HEIGHT + WALL_THICKNESS, 1f));
+            new Vector3(-9.35000038f, -0.409999996f, 0f), new Vector3(0.5f, 10.5f, 1f));
         leftWall.tag = "ArenaWall";
         leftWall.layer = LayerMask.NameToLayer("Arena");
         leftWall.AddComponent<BoxCollider2D>();
@@ -230,7 +230,7 @@ public class SetupGameScene : Editor
 
         // Parede direita
         GameObject rightWall = CreateSprite("Arena_RightWall", sprite, new Color(0.35f, 0.15f, 0.2f, 0.8f),
-            new Vector3(ARENA_HALF_W + WALL_THICKNESS / 2f, 0, 0), new Vector3(WALL_THICKNESS, ARENA_HEIGHT + WALL_THICKNESS, 1f));
+            new Vector3(9.28999996f, -0.0399999991f, 0f), new Vector3(0.5f, 9.89414978f, 1f));
         rightWall.tag = "ArenaWall";
         rightWall.layer = LayerMask.NameToLayer("Arena");
         rightWall.AddComponent<BoxCollider2D>();

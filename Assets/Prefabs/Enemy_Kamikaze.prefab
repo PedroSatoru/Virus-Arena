@@ -276,6 +276,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
   maxHP: 1
+  isInvulnerable: 0
 --- !u!114 &3345457298348688630
 MonoBehaviour:
   m_ObjectHideFlags: 0

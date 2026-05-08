@@ -114,11 +114,18 @@ public class SetupGameScene : Editor
         GameObject playerShooterPrefab = CreatePlayerShooterPrefab(whiteSprite, purpleBulletPrefab);
         GameObject kamikazePrefab = CreateKamikazePrefab(whiteSprite);
 
+        // Boss prefab (apenas fase 3)
+        GameObject bossPrefab = null;
+        if (phase == 3)
+        {
+            bossPrefab = CreateBossPrefab(whiteSprite, enemyBulletPrefab, purpleBulletPrefab);
+        }
+
         CreateInitialEnemy(antiCorpoPrefab);
 
         GameObject hudCanvas = CreateHUD(phase);
 
-        GameObject gmObj = CreateGameManager(antiCorpoPrefab, playerShooterPrefab, kamikazePrefab, hudCanvas, phase);
+        GameObject gmObj = CreateGameManager(antiCorpoPrefab, playerShooterPrefab, kamikazePrefab, bossPrefab, hudCanvas, phase);
 
         PlayerShooting ps = player.GetComponent<PlayerShooting>();
         if (ps != null) ps.bulletPrefab = playerBulletPrefab;
@@ -712,6 +719,67 @@ public class SetupGameScene : Editor
         rightEye.transform.localRotation = Quaternion.Euler(0, 0, -15f);
         rightEye.GetComponent<SpriteRenderer>().sortingOrder = 7;
     }
+
+    // ============================================================
+    // PREFAB DO BOSS (Fase 3 - Vírus Final)
+    // ============================================================
+    static GameObject CreateBossPrefab(Sprite sprite, GameObject enemyBulletPrefab, GameObject purpleBulletPrefab)
+    {
+        // Boss é 1.3x maior que inimigos normais (0.7 * 1.3 = 0.91)
+        GameObject boss = CreateSprite("Boss_Virus", sprite, new Color(0.4f, 0f, 0.3f),
+            Vector3.zero, new Vector3(0.91f, 0.91f, 1f));
+        boss.tag = "Enemy";
+        boss.layer = LayerMask.NameToLayer("Enemy");
+        boss.GetComponent<SpriteRenderer>().sortingOrder = 8;
+
+        BoxCollider2D col = boss.AddComponent<BoxCollider2D>();
+        col.size = new Vector2(1f, 1f);
+
+        Rigidbody2D rb = boss.AddComponent<Rigidbody2D>();
+        rb.gravityScale = 0f;
+        rb.bodyType = RigidbodyType2D.Kinematic;
+
+        EnemyHealth health = boss.AddComponent<EnemyHealth>();
+        health.maxHP = 100;
+        health.isInvulnerable = true; // Começa invulnerável
+
+        BossController bc = boss.AddComponent<BossController>();
+        bc.antiBodyBulletPrefab = enemyBulletPrefab;
+        bc.antiPlayerBulletPrefab = purpleBulletPrefab;
+        bc.bulletSpeed = 7f;
+        bc.bodyDamagePerAttack = 50f;
+        bc.telegraphDuration = 1.5f;
+        bc.telegraphCeilingDuration = 2.5f;
+        bc.vulnerableDuration = 2.5f;
+
+        // Espinhos maiores e mais ameaçadores (8 espinhos)
+        for (int i = 0; i < 8; i++)
+        {
+            float angle = i * 45f;
+            float rad = angle * Mathf.Deg2Rad;
+            GameObject spike = CreateSprite($"BossSpike_{i}", sprite, new Color(0.6f, 0f, 0.2f),
+                Vector3.zero, new Vector3(0.15f, 0.3f, 1f));
+            spike.transform.parent = boss.transform;
+            spike.transform.localPosition = new Vector3(Mathf.Cos(rad) * 0.45f, Mathf.Sin(rad) * 0.45f, 0);
+            spike.transform.localRotation = Quaternion.Euler(0, 0, angle - 90f);
+            spike.GetComponent<SpriteRenderer>().sortingOrder = 9;
+        }
+
+        // Núcleo interno pulsante
+        GameObject core = CreateSprite("BossCore", sprite, new Color(0.8f, 0f, 0.4f, 0.7f),
+            Vector3.zero, new Vector3(0.35f, 0.35f, 1f));
+        core.transform.parent = boss.transform;
+        core.transform.localPosition = Vector3.zero;
+        core.GetComponent<SpriteRenderer>().sortingOrder = 9;
+
+        // Olhos vermelhos brilhantes
+        AddEyes(boss, sprite, new Color(1f, 0f, 0f));
+
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(boss, "Assets/Prefabs/Boss_Virus.prefab");
+        DestroyImmediate(boss);
+        return prefab;
+    }
+
     static void CreateInitialEnemy(GameObject enemyPrefab)
     {
         GameObject enemy = (GameObject)PrefabUtility.InstantiatePrefab(enemyPrefab);
@@ -947,23 +1015,92 @@ public class SetupGameScene : Editor
 
         pUpPanel.SetActive(false);
 
+        // ==== BARRA DE VIDA DO BOSS (topo, oculta inicialmente) ====
+        if (phase == 3)
+        {
+            GameObject bossBarPanel = new GameObject("BossHealthPanel");
+            bossBarPanel.transform.SetParent(canvasObj.transform, false);
+            RectTransform bossBarPanelRT = bossBarPanel.AddComponent<RectTransform>();
+            bossBarPanelRT.anchorMin = new Vector2(0.15f, 1f);
+            bossBarPanelRT.anchorMax = new Vector2(0.85f, 1f);
+            bossBarPanelRT.pivot = new Vector2(0.5f, 1f);
+            bossBarPanelRT.sizeDelta = new Vector2(0, 40);
+            bossBarPanelRT.anchoredPosition = new Vector2(0, -5);
+
+            // Fundo da barra
+            Image bossBarBgImg = bossBarPanel.AddComponent<Image>();
+            bossBarBgImg.color = new Color(0.1f, 0f, 0.1f, 0.9f);
+
+            // Slider
+            GameObject bossSliderObj = new GameObject("BossHealthSlider");
+            bossSliderObj.transform.SetParent(bossBarPanel.transform, false);
+            RectTransform bossSliderRT = bossSliderObj.AddComponent<RectTransform>();
+            bossSliderRT.anchorMin = Vector2.zero;
+            bossSliderRT.anchorMax = Vector2.one;
+            bossSliderRT.sizeDelta = new Vector2(-8, -8);
+            Slider bossSlider = bossSliderObj.AddComponent<Slider>();
+            bossSlider.transition = Selectable.Transition.None;
+
+            GameObject bossFillArea = new GameObject("Fill Area");
+            bossFillArea.transform.SetParent(bossSliderObj.transform, false);
+            RectTransform bossFillAreaRT = bossFillArea.AddComponent<RectTransform>();
+            bossFillAreaRT.anchorMin = Vector2.zero;
+            bossFillAreaRT.anchorMax = Vector2.one;
+            bossFillAreaRT.sizeDelta = Vector2.zero;
+
+            GameObject bossFill = CreateUIImage("Fill", bossFillArea.transform, new Color(0.5f, 0f, 0.7f));
+            RectTransform bossFillRT = bossFill.GetComponent<RectTransform>();
+            bossFillRT.anchorMin = Vector2.zero;
+            bossFillRT.anchorMax = Vector2.one;
+            bossFillRT.sizeDelta = Vector2.zero;
+            bossSlider.fillRect = bossFillRT;
+            bossSlider.maxValue = 100;
+            bossSlider.value = 100;
+
+            GameObject bossLabel = CreateUIText("BossLabel", bossBarPanel.transform, "BOSS: 100/100", 14, TextAnchor.MiddleCenter, Color.white);
+            RectTransform bossLabelRT = bossLabel.GetComponent<RectTransform>();
+            bossLabelRT.anchorMin = Vector2.zero;
+            bossLabelRT.anchorMax = Vector2.one;
+            bossLabelRT.sizeDelta = Vector2.zero;
+
+            bossBarPanel.SetActive(false);
+        }
+
+        // ==== PAINEL DE VITÓRIA ====
+        if (phase == 3)
+        {
+            GameObject vicPanel = CreateUIImage("VictoryPanel", canvasObj.transform, new Color(0f, 0.05f, 0.1f, 0.9f));
+            RectTransform vicRT = vicPanel.GetComponent<RectTransform>();
+            vicRT.anchorMin = Vector2.zero;
+            vicRT.anchorMax = Vector2.one;
+            vicRT.sizeDelta = Vector2.zero;
+
+            CreateUIText("VicTitle", vicPanel.transform, "VIT\u00d3RIA!", 48, TextAnchor.MiddleCenter, new Color(0.2f, 1f, 0.4f));
+            GameObject vicSub = CreateUIText("VicSub", vicPanel.transform, "V\u00edrus derrotado! O corpo est\u00e1 salvo.", 20, TextAnchor.MiddleCenter, new Color(0.7f, 1f, 0.8f));
+            vicSub.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -50);
+            CreateUIButton("VictoryMenuBtn", vicPanel.transform, "MENU PRINCIPAL", new Vector2(0, -120), new Vector2(250, 40), new Color(0.2f, 0.5f, 0.3f));
+
+            vicPanel.SetActive(false);
+        }
+
         return canvasObj;
     }
 
     // ============================================================
     // GAME MANAGER
     // ============================================================
-    static GameObject CreateGameManager(GameObject antiCorpoPrefab, GameObject playerShooterPrefab, GameObject kamikazePrefab, GameObject hudCanvas, int phase)
+    static GameObject CreateGameManager(GameObject antiCorpoPrefab, GameObject playerShooterPrefab, GameObject kamikazePrefab, GameObject bossPrefab, GameObject hudCanvas, int phase)
     {
         GameObject gmObj = new GameObject("GameManager");
         GameManager gm = gmObj.AddComponent<GameManager>();
-        gm.totalTime = phase == 1 ? 10f : 180f; // Fase 1 tem 10 seg, Fases 2 e 3 têm 3 min
+        gm.totalTime = (phase == 1 || phase == 3) ? 10f : 180f; // Fases 1 e 3 com 10 seg para teste
         gm.bodyMaxHP = 1500f;
         gm.organMaxHP = 500f;
         gm.currentPhase = phase;
         gm.antiCorpoPrefab = antiCorpoPrefab;
         gm.playerShooterPrefab = playerShooterPrefab;
         gm.kamikazePrefab = kamikazePrefab;
+        gm.bossPrefab = bossPrefab;
         gm.baseSpawnInterval = 2.5f;
         gm.minSpawnInterval = 1f;
         gm.maxTotalEnemies = 8;
@@ -984,6 +1121,18 @@ public class SetupGameScene : Editor
             Transform pUpPanelTransform = hudCanvas.transform.Find("PowerUpPanel");
             if (pUpPanelTransform != null)
                 gm.powerUpPanel = pUpPanelTransform.gameObject;
+
+            // Boss UI e Vitória (apenas fase 3)
+            if (phase == 3)
+            {
+                Transform bossPanel = hudCanvas.transform.Find("BossHealthPanel");
+                if (bossPanel != null)
+                    gm.bossHealthPanel = bossPanel.gameObject;
+
+                Transform vicPanel = hudCanvas.transform.Find("VictoryPanel");
+                if (vicPanel != null)
+                    gm.victoryPanel = vicPanel.gameObject;
+            }
         }
 
         return gmObj;

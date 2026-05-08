@@ -11,6 +11,9 @@ public class EnemyHealth : MonoBehaviour
     public int maxHP = 1; // Fase 1: 1 hit kill
     private int currentHP;
 
+    [Header("Invulnerabilidade (Boss)")]
+    public bool isInvulnerable = false;
+
     [Header("Feedback Visual")]
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
@@ -25,8 +28,12 @@ public class EnemyHealth : MonoBehaviour
             originalColor = spriteRenderer.color;
     }
 
+    public int GetCurrentHP() => currentHP;
+
     public void TakeDamage(int damage = 1)
     {
+        if (isInvulnerable) return;
+
         currentHP -= damage;
         
         if (spriteRenderer != null)

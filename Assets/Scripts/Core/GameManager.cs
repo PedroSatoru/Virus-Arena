@@ -35,6 +35,12 @@ public class GameManager : MonoBehaviour
     public GameObject playerShooterPrefab;   // Atirador Anti-Player (Roxo)
     public GameObject kamikazePrefab;        // Kamikaze (Laranja/Vermelho escuro)
 
+    [Header("Boss (Fase 3)")]
+    public GameObject bossPrefab;
+    public GameObject bossHealthPanel;
+    private BossController activeBoss;
+    private bool bossSpawned = false;
+
     [Header("Escalonamento por Tempo")]
     public float speedMultiplier = 1f;
 
@@ -57,9 +63,12 @@ public class GameManager : MonoBehaviour
 
     [Header("UI Game Over")]
     public GameObject gameOverPanel;
-    public Text gameOverReasonText;  // Texto de motivo (opcional)
+    public Text gameOverReasonText;
 
-    [Header("UI Power Up (Apenas fase 1)")]
+    [Header("UI Vitória")]
+    public GameObject victoryPanel;
+
+    [Header("UI Power Up (Apenas fases 1 e 2)")]
     public GameObject powerUpPanel;
 
     // Spawn state
@@ -89,6 +98,14 @@ public class GameManager : MonoBehaviour
 
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (powerUpPanel != null) powerUpPanel.SetActive(false);
+        if (victoryPanel != null) victoryPanel.SetActive(false);
+        if (bossHealthPanel != null) bossHealthPanel.SetActive(false);
+
+        // Auto-fiação dos botões da Vitória
+        if (victoryPanel != null)
+        {
+            WireButton(victoryPanel.transform, "VictoryMenuBtn", ReturnToMenu);
+        }
 
         // Auto-fiação dos botões do Game Over (via Transform.Find - funciona em objetos inativos)
         if (gameOverPanel != null)
@@ -132,6 +149,9 @@ public class GameManager : MonoBehaviour
             OnPhaseCompleted();
             return;
         }
+
+        // Não spawnar inimigos normais se o boss já apareceu
+        if (bossSpawned) return;
 
         // Spawn (agora escala com velocidade, ou seja, nasce mais rápido)
         spawnTimer -= Time.deltaTime * speedMultiplier;
@@ -320,21 +340,87 @@ public class GameManager : MonoBehaviour
 
     void OnPhaseCompleted()
     {
-        isGameOver = true;
         Debug.Log($"Fase {currentPhase} completada! Órgão morto: {isOrganDead}");
 
         // Fases 1 e 2: mostrar painel de PowerUp antes de avançar
-        if (currentPhase <= 2 && powerUpPanel != null)
+        if (currentPhase <= 2)
         {
-            powerUpPanel.SetActive(true);
-            StartCoroutine(SlowTimeAndStop());
+            isGameOver = true;
+            if (powerUpPanel != null)
+            {
+                powerUpPanel.SetActive(true);
+                StartCoroutine(SlowTimeAndStop());
+            }
         }
-        else if (currentPhase == 3)
+        else if (currentPhase == 3 && !bossSpawned)
         {
-            // Fase 3 completada — vitória (por enquanto volta ao menu)
-            Debug.Log("🎉 Todas as fases completadas! Vitória!");
-            // TODO: Tela de vitória / Boss
-            GameOver("VITÓRIA — VÍRUS DERROTADO!");
+            // Fase 3: spawnar o Boss ao invés de terminar
+            SpawnBoss();
+        }
+    }
+
+    void SpawnBoss()
+    {
+        if (bossPrefab == null) return;
+
+        bossSpawned = true;
+        Debug.Log("💀 BOSS APARECEU!");
+
+        // Destruir todos os inimigos normais
+        foreach (var e in FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None))
+        {
+            if (e.GetComponent<BossController>() == null)
+                Destroy(e.gameObject);
+        }
+
+        // Instanciar boss no centro da tela
+        GameObject bossObj = Instantiate(bossPrefab, new Vector3(0f, 1f, 0f), Quaternion.identity);
+        activeBoss = bossObj.GetComponent<BossController>();
+
+        if (activeBoss != null)
+        {
+            activeBoss.OnBossDefeated += OnBossDefeated;
+
+            // Conectar UI do boss
+            if (bossHealthPanel != null)
+            {
+                bossHealthPanel.SetActive(true);
+                activeBoss.bossHealthSlider = bossHealthPanel.GetComponentInChildren<Slider>();
+                activeBoss.bossHealthFill = bossHealthPanel.transform.Find("BossHealthSlider/Fill Area/Fill")?.GetComponent<UnityEngine.UI.Image>();
+                activeBoss.bossHealthLabel = bossHealthPanel.transform.Find("BossLabel")?.GetComponent<Text>();
+            }
+
+            activeBoss.ActivateBoss();
+        }
+    }
+
+    void OnBossDefeated()
+    {
+        isGameOver = true;
+        Debug.Log("🎉 BOSS DERROTADO! VITÓRIA!");
+
+        if (victoryPanel != null)
+        {
+            victoryPanel.SetActive(true);
+        }
+
+        StartCoroutine(SlowTimeAndStop());
+    }
+
+    /// <summary>
+    /// Dano direto do Boss ao corpo e órgão (bypassa o sistema normal de arena).
+    /// </summary>
+    public void ApplyBossDamage(float damage)
+    {
+        bodyCurrentHP -= damage;
+        organCurrentHP -= damage * 0.5f; // 50% do dano também vai pro órgão (25 de dano)
+
+        if (organCurrentHP < 0f) organCurrentHP = 0f;
+
+        if (bodyCurrentHP <= 0f)
+        {
+            bodyCurrentHP = 0f;
+            GameOver("FALÊNCIA SISTÊMICA");
         }
     }
 

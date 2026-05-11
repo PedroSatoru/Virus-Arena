@@ -22,6 +22,7 @@ public class EnemyKamikaze : MonoBehaviour
     private Transform playerTransform;
     private EnemyHealth health;
     private Rigidbody2D rb;
+    private SpriteRenderer spriteRenderer;
     private bool hasExploded = false;
 
     void Start()
@@ -33,6 +34,7 @@ public class EnemyKamikaze : MonoBehaviour
         }
 
         rb = GetComponent<Rigidbody2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
 
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
@@ -56,6 +58,13 @@ public class EnemyKamikaze : MonoBehaviour
 
             Vector2 newPos = Vector2.MoveTowards(rb.position, playerTransform.position, currentSpeed * Time.fixedDeltaTime);
             rb.MovePosition(newPos);
+            
+            // Flip sprite (original aponta para esquerda)
+            if (spriteRenderer != null)
+            {
+                // Se o player está à direita, flipX = true para apontar para a direita
+                spriteRenderer.flipX = playerTransform.position.x > transform.position.x;
+            }
 
             // Verificar distância para explodir
             if (Vector2.Distance(transform.position, playerTransform.position) <= explosionRadius)

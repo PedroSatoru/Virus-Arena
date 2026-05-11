@@ -66,6 +66,21 @@ public class SetupGameScene : Editor
         return _cachedSprite;
     }
 
+    /// <summary>
+    /// Carrega um sprite específico da pasta Assets/Sprites.
+    /// </summary>
+    static Sprite GetSprite(string name)
+    {
+        string path = $"Assets/Sprites/{name}.png";
+        Sprite s = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        if (s == null)
+        {
+            // Fallback para o branco se não encontrar
+            return GetPersistentWhiteSprite();
+        }
+        return s;
+    }
+
     [MenuItem("Virus Arena/Setup Game Scene - FASE 1")]
     public static void SetupPhase1()
     {
@@ -647,10 +662,11 @@ public class SetupGameScene : Editor
     // ============================================================
     // PLAYER
     // ============================================================
-    static GameObject CreatePlayer(Sprite sprite)
+    static GameObject CreatePlayer(Sprite whiteSprite)
     {
-        GameObject player = CreateSprite("Player_GlobuloBranco", sprite, new Color(0.9f, 0.95f, 1f),
-            new Vector3(0, -3.5f, 0), new Vector3(0.8f, 0.8f, 1f));
+        Sprite playerSprite = GetSprite("Player");
+        GameObject player = CreateSprite("Player_GlobuloBranco", playerSprite, Color.white,
+            new Vector3(0, -3.5f, 0), new Vector3(0.2f, 0.2f, 1f));
         player.tag = "Player";
         player.layer = LayerMask.NameToLayer("Player");
         player.GetComponent<SpriteRenderer>().sortingOrder = 10;
@@ -661,7 +677,8 @@ public class SetupGameScene : Editor
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
         BoxCollider2D col = player.AddComponent<BoxCollider2D>();
-        col.size = new Vector2(1f, 1f); // Cobre todo o sprite quadrado
+        col.size = new Vector2(7.0f, 7.0f); // Tamanho perfeito solicitado pelo usuário
+        col.offset = Vector2.zero;
 
         PlayerController pc = player.AddComponent<PlayerController>();
         pc.moveSpeed = 7f;
@@ -706,13 +723,6 @@ public class SetupGameScene : Editor
         lr.material = lineMat;
         lr.sortingOrder = 11;
         ps.aimLine = lr;
-
-        // Núcleo visual
-        GameObject nucleus = CreateSprite("Nucleus", sprite, new Color(0.6f, 0.65f, 0.9f, 0.8f),
-            Vector3.zero, new Vector3(0.25f, 0.25f, 1f));
-        nucleus.transform.parent = player.transform;
-        nucleus.transform.localPosition = new Vector3(0.05f, -0.05f, 0);
-        nucleus.GetComponent<SpriteRenderer>().sortingOrder = 11;
 
         return player;
     }
@@ -776,16 +786,18 @@ public class SetupGameScene : Editor
     // ============================================================
     // PREFAB DO INIMIGO
     // ============================================================
-    static GameObject CreateEnemyPrefab(Sprite sprite, GameObject enemyBulletPrefab)
+    static GameObject CreateEnemyPrefab(Sprite whiteSprite, GameObject enemyBulletPrefab)
     {
-        GameObject enemy = CreateSprite("Enemy_AntiCorpo", sprite, new Color(1f, 0.85f, 0f),
-            Vector3.zero, new Vector3(0.7f, 0.7f, 1f));
+        Sprite enemySprite = GetSprite("AntiCorpo");
+        GameObject enemy = CreateSprite("Enemy_AntiCorpo", enemySprite, Color.white,
+            Vector3.zero, new Vector3(0.175f, 0.175f, 1f));
         enemy.tag = "Enemy";
         enemy.layer = LayerMask.NameToLayer("Enemy");
         enemy.GetComponent<SpriteRenderer>().sortingOrder = 5;
 
         BoxCollider2D col = enemy.AddComponent<BoxCollider2D>();
-        col.size = new Vector2(1f, 1f);
+        col.size = new Vector2(8.0f, 8.0f);
+        col.offset = Vector2.zero;
 
         Rigidbody2D rb = enemy.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
@@ -802,35 +814,6 @@ public class SetupGameScene : Editor
 
         EnemyHealth health = enemy.AddComponent<EnemyHealth>();
         health.maxHP = 1;
-
-        // Espinhos
-        for (int i = 0; i < 6; i++)
-        {
-            float angle = i * 60f;
-            float rad = angle * Mathf.Deg2Rad;
-            Vector3 spikePos = new Vector3(Mathf.Cos(rad) * 0.35f, Mathf.Sin(rad) * 0.35f, 0);
-            GameObject spike = CreateSprite($"Spike_{i}", sprite, new Color(1f, 0.6f, 0f),
-                Vector3.zero, new Vector3(0.12f, 0.2f, 1f));
-            spike.transform.parent = enemy.transform;
-            spike.transform.localPosition = spikePos;
-            spike.transform.localRotation = Quaternion.Euler(0, 0, angle - 90f);
-            spike.GetComponent<SpriteRenderer>().sortingOrder = 6;
-        }
-
-        // Olhos
-        GameObject leftEye = CreateSprite("LeftEye", sprite, new Color(0.2f, 0f, 0f),
-            Vector3.zero, new Vector3(0.15f, 0.06f, 1f));
-        leftEye.transform.parent = enemy.transform;
-        leftEye.transform.localPosition = new Vector3(-0.1f, 0.05f, -0.1f);
-        leftEye.transform.localRotation = Quaternion.Euler(0, 0, 15f);
-        leftEye.GetComponent<SpriteRenderer>().sortingOrder = 7;
-
-        GameObject rightEye = CreateSprite("RightEye", sprite, new Color(0.2f, 0f, 0f),
-            Vector3.zero, new Vector3(0.15f, 0.06f, 1f));
-        rightEye.transform.parent = enemy.transform;
-        rightEye.transform.localPosition = new Vector3(0.1f, 0.05f, -0.1f);
-        rightEye.transform.localRotation = Quaternion.Euler(0, 0, -15f);
-        rightEye.GetComponent<SpriteRenderer>().sortingOrder = 7;
 
         GameObject prefab = PrefabUtility.SaveAsPrefabAsset(enemy, "Assets/Prefabs/Enemy_AntiCorpo.prefab");
         DestroyImmediate(enemy);
@@ -868,16 +851,18 @@ public class SetupGameScene : Editor
     // ============================================================
     // PREFAB DO INIMIGO ANTI-CORPO (Amarelo)
     // ============================================================
-    static GameObject CreateAntiCorpoPrefab(Sprite sprite, GameObject enemyBulletPrefab)
+    static GameObject CreateAntiCorpoPrefab(Sprite whiteSprite, GameObject enemyBulletPrefab)
     {
-        GameObject enemy = CreateSprite("Enemy_AntiCorpo", sprite, new Color(1f, 0.85f, 0f),
-            Vector3.zero, new Vector3(0.7f, 0.7f, 1f));
+        Sprite enemySprite = GetSprite("AntiCorpo");
+        GameObject enemy = CreateSprite("Enemy_AntiCorpo", enemySprite, Color.white,
+            Vector3.zero, new Vector3(0.175f, 0.175f, 1f));
         enemy.tag = "Enemy";
         enemy.layer = LayerMask.NameToLayer("Enemy");
         enemy.GetComponent<SpriteRenderer>().sortingOrder = 5;
 
         BoxCollider2D col = enemy.AddComponent<BoxCollider2D>();
-        col.size = new Vector2(1f, 1f);
+        col.size = new Vector2(8.0f, 8.0f);
+        col.offset = Vector2.zero;
 
         Rigidbody2D rb = enemy.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
@@ -895,22 +880,6 @@ public class SetupGameScene : Editor
         EnemyHealth health = enemy.AddComponent<EnemyHealth>();
         health.maxHP = 1;
 
-        // Espinhos
-        for (int i = 0; i < 6; i++)
-        {
-            float angle = i * 60f;
-            float rad = angle * Mathf.Deg2Rad;
-            GameObject spike = CreateSprite($"Spike_{i}", sprite, new Color(1f, 0.6f, 0f),
-                Vector3.zero, new Vector3(0.12f, 0.2f, 1f));
-            spike.transform.parent = enemy.transform;
-            spike.transform.localPosition = new Vector3(Mathf.Cos(rad) * 0.35f, Mathf.Sin(rad) * 0.35f, 0);
-            spike.transform.localRotation = Quaternion.Euler(0, 0, angle - 90f);
-            spike.GetComponent<SpriteRenderer>().sortingOrder = 6;
-        }
-
-        // Olhos
-        AddEyes(enemy, sprite, new Color(0.2f, 0f, 0f));
-
         GameObject prefab = PrefabUtility.SaveAsPrefabAsset(enemy, "Assets/Prefabs/Enemy_AntiCorpo.prefab");
         DestroyImmediate(enemy);
         return prefab;
@@ -919,17 +888,17 @@ public class SetupGameScene : Editor
     // ============================================================
     // PREFAB DO INIMIGO KAMIKAZE
     // ============================================================
-    static GameObject CreateKamikazePrefab(Sprite sprite)
+    static GameObject CreateKamikazePrefab(Sprite whiteSprite)
     {
-        // Cor Laranja avermelhada, um pouco menor ou mais denso
-        GameObject enemy = CreateSprite("Enemy_Kamikaze", sprite, new Color(0.9f, 0.3f, 0f),
-            Vector3.zero, new Vector3(0.6f, 0.6f, 1f));
+        Sprite kSprite = GetSprite("Kamikaze");
+        GameObject enemy = CreateSprite("Enemy_Kamikaze", kSprite, Color.white,
+            Vector3.zero, new Vector3(0.15f, 0.15f, 1f));
         enemy.tag = "Enemy";
         enemy.layer = LayerMask.NameToLayer("Enemy");
         enemy.GetComponent<SpriteRenderer>().sortingOrder = 5;
 
         BoxCollider2D col = enemy.AddComponent<BoxCollider2D>();
-        col.size = new Vector2(1f, 1f);
+        col.size = new Vector2(5.0f, 5.0f);
 
         Rigidbody2D rb = enemy.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
@@ -951,23 +920,6 @@ public class SetupGameScene : Editor
         kamikaze.arenaMinY = -4.5f;
         kamikaze.arenaMaxY = 4.5f;
 
-        // Visual do Kamikaze (um "x" vermelho dentro)
-        GameObject detail1 = CreateSprite("Detail1", sprite, new Color(0.5f, 0f, 0f),
-            Vector3.zero, new Vector3(0.8f, 0.2f, 1f));
-        detail1.transform.parent = enemy.transform;
-        detail1.transform.localPosition = Vector3.zero;
-        detail1.transform.localRotation = Quaternion.Euler(0, 0, 45f);
-        detail1.GetComponent<SpriteRenderer>().sortingOrder = 6;
-
-        GameObject detail2 = CreateSprite("Detail2", sprite, new Color(0.5f, 0f, 0f),
-            Vector3.zero, new Vector3(0.8f, 0.2f, 1f));
-        detail2.transform.parent = enemy.transform;
-        detail2.transform.localPosition = Vector3.zero;
-        detail2.transform.localRotation = Quaternion.Euler(0, 0, -45f);
-        detail2.GetComponent<SpriteRenderer>().sortingOrder = 6;
-
-        AddEyes(enemy, sprite, new Color(0f, 0f, 0f));
-
         GameObject prefab = PrefabUtility.SaveAsPrefabAsset(enemy, "Assets/Prefabs/Enemy_Kamikaze.prefab");
         DestroyImmediate(enemy);
         return prefab;
@@ -976,16 +928,18 @@ public class SetupGameScene : Editor
     // ============================================================
     // PREFAB DO INIMIGO PLAYER SHOOTER (Roxo)
     // ============================================================
-    static GameObject CreatePlayerShooterPrefab(Sprite sprite, GameObject purpleBulletPrefab)
+    static GameObject CreatePlayerShooterPrefab(Sprite whiteSprite, GameObject purpleBulletPrefab)
     {
-        GameObject enemy = CreateSprite("Enemy_PlayerShooter", sprite, new Color(0.6f, 0f, 0.8f),
-            Vector3.zero, new Vector3(0.7f, 0.7f, 1f));
+        Sprite enemySprite = GetSprite("PlayerShooter");
+        GameObject enemy = CreateSprite("Enemy_PlayerShooter", enemySprite, Color.white,
+            Vector3.zero, new Vector3(0.175f, 0.175f, 1f));
         enemy.tag = "Enemy";
         enemy.layer = LayerMask.NameToLayer("Enemy");
         enemy.GetComponent<SpriteRenderer>().sortingOrder = 5;
 
         BoxCollider2D col = enemy.AddComponent<BoxCollider2D>();
-        col.size = new Vector2(1f, 1f);
+        col.size = new Vector2(8.0f, 8.0f);
+        col.offset = Vector2.zero;
 
         Rigidbody2D rb = enemy.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
@@ -1001,22 +955,6 @@ public class SetupGameScene : Editor
 
         EnemyHealth health = enemy.AddComponent<EnemyHealth>();
         health.maxHP = 1;
-
-        // Espinhos roxos
-        for (int i = 0; i < 6; i++)
-        {
-            float angle = i * 60f;
-            float rad = angle * Mathf.Deg2Rad;
-            GameObject spike = CreateSprite($"Spike_{i}", sprite, new Color(0.4f, 0f, 0.6f),
-                Vector3.zero, new Vector3(0.12f, 0.2f, 1f));
-            spike.transform.parent = enemy.transform;
-            spike.transform.localPosition = new Vector3(Mathf.Cos(rad) * 0.35f, Mathf.Sin(rad) * 0.35f, 0);
-            spike.transform.localRotation = Quaternion.Euler(0, 0, angle - 90f);
-            spike.GetComponent<SpriteRenderer>().sortingOrder = 6;
-        }
-
-        // Olhos vermelhos (mais agressivos)
-        AddEyes(enemy, sprite, new Color(1f, 0f, 0.1f));
 
         GameObject prefab = PrefabUtility.SaveAsPrefabAsset(enemy, "Assets/Prefabs/Enemy_PlayerShooter.prefab");
         DestroyImmediate(enemy);
@@ -1043,17 +981,17 @@ public class SetupGameScene : Editor
     // ============================================================
     // PREFAB DO BOSS (Fase 3 - Vírus Final)
     // ============================================================
-    static GameObject CreateBossPrefab(Sprite sprite, GameObject enemyBulletPrefab, GameObject purpleBulletPrefab)
+    static GameObject CreateBossPrefab(Sprite whiteSprite, GameObject enemyBulletPrefab, GameObject purpleBulletPrefab)
     {
-        // Boss é 1.3x maior que inimigos normais (0.7 * 1.3 = 0.91)
-        GameObject boss = CreateSprite("Boss_Virus", sprite, new Color(0.4f, 0f, 0.3f),
-            Vector3.zero, new Vector3(0.91f, 0.91f, 1f));
+        Sprite bossSprite = GetSprite("Boss");
+        GameObject boss = CreateSprite("Boss_Virus", bossSprite, Color.white,
+            Vector3.zero, new Vector3(0.25f, 0.25f, 1f));
         boss.tag = "Enemy";
         boss.layer = LayerMask.NameToLayer("Enemy");
         boss.GetComponent<SpriteRenderer>().sortingOrder = 8;
 
         BoxCollider2D col = boss.AddComponent<BoxCollider2D>();
-        col.size = new Vector2(1f, 1f);
+        col.size = new Vector2(3.5f, 3.5f);
 
         Rigidbody2D rb = boss.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
@@ -1073,29 +1011,6 @@ public class SetupGameScene : Editor
         bc.telegraphCeilingDuration = 3f;
         bc.telegraphFloorDuration = 0.35f;
         bc.vulnerableDuration = 2.5f;
-
-        // Espinhos maiores e mais ameaçadores (8 espinhos)
-        for (int i = 0; i < 8; i++)
-        {
-            float angle = i * 45f;
-            float rad = angle * Mathf.Deg2Rad;
-            GameObject spike = CreateSprite($"BossSpike_{i}", sprite, new Color(0.6f, 0f, 0.2f),
-                Vector3.zero, new Vector3(0.15f, 0.3f, 1f));
-            spike.transform.parent = boss.transform;
-            spike.transform.localPosition = new Vector3(Mathf.Cos(rad) * 0.45f, Mathf.Sin(rad) * 0.45f, 0);
-            spike.transform.localRotation = Quaternion.Euler(0, 0, angle - 90f);
-            spike.GetComponent<SpriteRenderer>().sortingOrder = 9;
-        }
-
-        // Núcleo interno pulsante
-        GameObject core = CreateSprite("BossCore", sprite, new Color(0.8f, 0f, 0.4f, 0.7f),
-            Vector3.zero, new Vector3(0.35f, 0.35f, 1f));
-        core.transform.parent = boss.transform;
-        core.transform.localPosition = Vector3.zero;
-        core.GetComponent<SpriteRenderer>().sortingOrder = 9;
-
-        // Olhos vermelhos brilhantes
-        AddEyes(boss, sprite, new Color(1f, 0f, 0f));
 
         GameObject prefab = PrefabUtility.SaveAsPrefabAsset(boss, "Assets/Prefabs/Boss_Virus.prefab");
         DestroyImmediate(boss);

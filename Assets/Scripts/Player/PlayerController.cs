@@ -21,6 +21,7 @@ public class PlayerController : MonoBehaviour
     public float maxX = 8f;
 
     private Rigidbody2D rb;
+    private BoxCollider2D boxCol;
     private bool isGrounded;
     private SpriteRenderer spriteRenderer;
     private float moveInput;
@@ -28,6 +29,7 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        boxCol = GetComponent<BoxCollider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         
         if (GlobalState.hasSpeedBoost)
@@ -47,15 +49,19 @@ public class PlayerController : MonoBehaviour
         moveInput = Input.GetAxisRaw("Horizontal");
 
         // Ground Check
-        if (groundCheck != null)
+        if (boxCol != null)
+        {
+            // Usa BoxCast ligeiramente abaixo dos pés para detectar o chão
+            isGrounded = Physics2D.BoxCast(boxCol.bounds.center, boxCol.bounds.size, 0f, Vector2.down, 0.1f, groundLayer);
+        }
+        else if (groundCheck != null)
         {
             isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         }
         else
         {
-            // Fallback: raycast para baixo
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 0.6f, groundLayer);
-            isGrounded = hit.collider != null;
+            // Fallback: raycast para baixo (agora com distância maior para garantir detecção com hitboxes grandes)
+            isGrounded = Physics2D.Raycast(transform.position, Vector2.down, 1.5f, groundLayer);
         }
 
         // Pulo

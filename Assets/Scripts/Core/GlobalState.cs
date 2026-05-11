@@ -12,6 +12,11 @@ public static class GlobalState
 
     public static int currentPhase = 1;
 
+    /// <summary>
+    /// Fase cujo órgão foi perdido (0 = nenhum, 1 = pulmão, 2 = coração, 3 = cérebro).
+    /// </summary>
+    public static int organLostPhase = 0;
+
     // Vida passada de uma cena para outra
     public static float savedBodyHP = -1f;
     public static int savedPlayerHearts = -1;
@@ -43,6 +48,7 @@ public static class GlobalState
         hasSpeedBoost = false;
         hasHeartAndBodyHP = false;
         currentPhase = 1;
+        organLostPhase = 0;
         savedBodyHP = -1f;
         savedPlayerHearts = -1;
     }
@@ -56,6 +62,7 @@ public static class GlobalState
         hasTripleShot = false;
         hasSpeedBoost = false;
         hasHeartAndBodyHP = false;
+        organLostPhase = 0;
         savedBodyHP = -1f;
         savedPlayerHearts = -1;
         infiniteTripleShotUsed = false;

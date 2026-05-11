@@ -96,6 +96,10 @@ public class GameManager : MonoBehaviour
         damageMultiplier = currentPhase;
         spawnTimer = 2f;
 
+        // TESTE: Simula que o pulmão foi perdido na fase 1 para testar cutscene de fim
+        if (currentPhase == 3 && GlobalState.organLostPhase == 0)
+            GlobalState.organLostPhase = 1;
+
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (powerUpPanel != null) powerUpPanel.SetActive(false);
         if (victoryPanel != null) victoryPanel.SetActive(false);
@@ -132,6 +136,17 @@ public class GameManager : MonoBehaviour
         PlayerHealth playerHealth = FindFirstObjectByType<PlayerHealth>();
         if (playerHealth != null)
             playerHealth.OnPlayerDeath += OnPlayerDied;
+
+        // Intro cutscene (apenas Fase 1)
+        if (currentPhase == 1)
+        {
+            CutsceneManager cs = FindFirstObjectByType<CutsceneManager>();
+            if (cs != null)
+            {
+                Time.timeScale = 0f; // Pausa enquanto mostra a intro
+                cs.Show("inicioJogo", "COMEÇAR ▶", () => { Time.timeScale = 1f; });
+            }
+        }
     }
 
     void Update()
@@ -280,6 +295,8 @@ public class GameManager : MonoBehaviour
             if (!isOrganDead)
             {
                 isOrganDead = true;
+                // Registra qual fase perdeu o órgão
+                GlobalState.organLostPhase = currentPhase;
                 // Fases 1 e 2: se o órgão morre, avança automaticamente
                 if (currentPhase <= 2)
                 {
@@ -303,27 +320,45 @@ public class GameManager : MonoBehaviour
         isGameOver = true;
         Debug.Log($"GAME OVER: {reason}");
 
-        if (gameOverPanel != null)
+        // Mostrar cutscene de morte antes do painel de Game Over
+        CutsceneManager cs = FindFirstObjectByType<CutsceneManager>();
+        if (cs != null)
         {
-            gameOverPanel.SetActive(true);
-
-            // Exibir motivo se o texto estiver configurado
-            if (gameOverReasonText != null)
-                gameOverReasonText.text = reason;
-            else
+            cs.Show("FimMorte", "VOLTAR AO MENU", () =>
             {
-                // Tentar encontrar texto de razão pelo nome
-                var goSub = gameOverPanel.transform.Find("GOSub");
-                if (goSub != null)
+                if (gameOverPanel != null)
                 {
-                    var txt = goSub.GetComponent<Text>();
-                    if (txt != null) txt.text = reason;
+                    gameOverPanel.SetActive(true);
+                    var goSub = gameOverPanel.transform.Find("GOSub");
+                    if (goSub != null)
+                    {
+                        var txt = goSub.GetComponent<Text>();
+                        if (txt != null) txt.text = reason;
+                    }
+                }
+                ReturnToMenu();
+            });
+        }
+        else
+        {
+            // Fallback sem cutscene
+            if (gameOverPanel != null)
+            {
+                gameOverPanel.SetActive(true);
+                if (gameOverReasonText != null)
+                    gameOverReasonText.text = reason;
+                else
+                {
+                    var goSub = gameOverPanel.transform.Find("GOSub");
+                    if (goSub != null)
+                    {
+                        var txt = goSub.GetComponent<Text>();
+                        if (txt != null) txt.text = reason;
+                    }
                 }
             }
+            StartCoroutine(SlowTimeAndStop());
         }
-
-        // Parar time
-        StartCoroutine(SlowTimeAndStop());
     }
 
     IEnumerator SlowTimeAndStop()
@@ -348,6 +383,9 @@ public class GameManager : MonoBehaviour
             isGameOver = true;
             if (powerUpPanel != null)
             {
+                // Desabilitar botões de powerups já escolhidos (exceto vida extra)
+                UpdatePowerUpButtons();
+                
                 powerUpPanel.SetActive(true);
                 StartCoroutine(SlowTimeAndStop());
             }
@@ -356,6 +394,46 @@ public class GameManager : MonoBehaviour
         {
             // Fase 3: spawnar o Boss ao invés de terminar
             SpawnBoss();
+        }
+    }
+
+    /// <summary>
+    /// Desabilita visualmente e funcionalmente botões de PowerUp já adquiridos.
+    /// Triple Shot e Speed Boost só podem ser pegos 1x.
+    /// </summary>
+    void UpdatePowerUpButtons()
+    {
+        if (powerUpPanel == null) return;
+
+        Transform box = powerUpPanel.transform.Find("PowerUpBox");
+        if (box == null) return;
+
+        // Triple Shot
+        if (GlobalState.hasTripleShot)
+        {
+            Transform btn = box.Find("TripleBtn");
+            if (btn != null)
+            {
+                Button b = btn.GetComponent<Button>();
+                b.interactable = false;
+                btn.GetComponent<Image>().color = new Color(0.4f, 0.4f, 0.4f, 0.8f);
+                var txt = btn.Find("TripleBtn_Txt")?.GetComponent<Text>();
+                if (txt != null) txt.text = "[JÁ ADQUIRIDO]";
+            }
+        }
+
+        // Speed Boost
+        if (GlobalState.hasSpeedBoost)
+        {
+            Transform btn = box.Find("SpeedBtn");
+            if (btn != null)
+            {
+                Button b = btn.GetComponent<Button>();
+                b.interactable = false;
+                btn.GetComponent<Image>().color = new Color(0.4f, 0.4f, 0.4f, 0.8f);
+                var txt = btn.Find("SpeedBtn_Txt")?.GetComponent<Text>();
+                if (txt != null) txt.text = "[JÁ ADQUIRIDO]";
+            }
         }
     }
 
@@ -399,12 +477,34 @@ public class GameManager : MonoBehaviour
         isGameOver = true;
         Debug.Log("🎉 BOSS DERROTADO! VITÓRIA!");
 
-        if (victoryPanel != null)
+        // Escolher cutscene de fim baseada nos órgãos perdidos
+        string cutsceneName;
+        if (isOrganDead) // órgão da fase 3 morreu
+            cutsceneName = "FimCerebro";
+        else
         {
-            victoryPanel.SetActive(true);
+            cutsceneName = GlobalState.organLostPhase switch
+            {
+                1 => "FimPulmao",
+                2 => "FimCoracao",
+                _ => "FinalFeliz" // nenhum órgão perdido = vitória perfeita
+            };
         }
 
-        StartCoroutine(SlowTimeAndStop());
+        CutsceneManager cs = FindFirstObjectByType<CutsceneManager>();
+        if (cs != null)
+        {
+            cs.Show(cutsceneName, "MENU PRINCIPAL", () =>
+            {
+                if (victoryPanel != null) victoryPanel.SetActive(true);
+                StartCoroutine(SlowTimeAndStop());
+            });
+        }
+        else
+        {
+            if (victoryPanel != null) victoryPanel.SetActive(true);
+            StartCoroutine(SlowTimeAndStop());
+        }
     }
 
     /// <summary>

@@ -466,6 +466,7 @@ public class SetupGameScene : Editor
         CreateInitialEnemy(antiCorpoPrefab);
 
         GameObject hudCanvas = CreateHUD(phase);
+        CreateCutsceneCanvas();
 
         GameObject gmObj = CreateGameManager(antiCorpoPrefab, playerShooterPrefab, kamikazePrefab, bossPrefab, hudCanvas, phase);
 
@@ -1390,6 +1391,62 @@ public class SetupGameScene : Editor
         obj.transform.position = pos;
         obj.transform.localScale = scale;
         return obj;
+    }
+
+    // ============================================================
+    // CUTSCENE CANVAS
+    // ============================================================
+    static void CreateCutsceneCanvas()
+    {
+        GameObject canvasObj = new GameObject("CutsceneCanvas");
+        Canvas canvas = canvasObj.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 200; // Acima de tudo
+
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+        canvasObj.AddComponent<GraphicRaycaster>();
+
+        CutsceneManager cm = canvasObj.AddComponent<CutsceneManager>();
+
+        // Painel de fundo preto fullscreen
+        GameObject panel = new GameObject("CutscenePanel");
+        panel.transform.SetParent(canvasObj.transform, false);
+        RectTransform panelRT = panel.AddComponent<RectTransform>();
+        panelRT.anchorMin = Vector2.zero;
+        panelRT.anchorMax = Vector2.one;
+        panelRT.sizeDelta = Vector2.zero;
+        Image panelImg = panel.AddComponent<Image>();
+        panelImg.color = new Color(0, 0, 0, 0.95f);
+
+        // Imagem da cutscene (fullscreen)
+        GameObject imgObj = new GameObject("CutsceneImage");
+        imgObj.transform.SetParent(panel.transform, false);
+        RectTransform imgRT = imgObj.AddComponent<RectTransform>();
+        imgRT.anchorMin = new Vector2(0.05f, 0.1f);
+        imgRT.anchorMax = new Vector2(0.95f, 0.95f);
+        imgRT.sizeDelta = Vector2.zero;
+        Image cutsceneImg = imgObj.AddComponent<Image>();
+        cutsceneImg.preserveAspect = true;
+        cm.cutsceneImage = cutsceneImg;
+
+        // Botão continuar (parte inferior)
+        GameObject btnObj = CreateUIButton("CutsceneContinueBtn", panel.transform,
+            "CONTINUAR ▶", new Vector2(0, 0), new Vector2(300, 55), new Color(0.15f, 0.15f, 0.2f));
+        RectTransform btnRT = btnObj.GetComponent<RectTransform>();
+        btnRT.anchorMin = new Vector2(0.5f, 0f);
+        btnRT.anchorMax = new Vector2(0.5f, 0f);
+        btnRT.anchoredPosition = new Vector2(0, 35);
+        btnRT.sizeDelta = new Vector2(300, 55);
+        cm.continueButton = btnObj.GetComponent<Button>();
+
+        // Texto do botão
+        Transform btnTxt = btnObj.transform.Find("CutsceneContinueBtn_Txt");
+        if (btnTxt != null) cm.continueButtonText = btnTxt.GetComponent<Text>();
+
+        cm.panel = panel;
+        panel.SetActive(false);
     }
 
     static GameObject CreateUIImage(string name, Transform parent, Color color)

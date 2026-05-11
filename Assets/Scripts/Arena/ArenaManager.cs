@@ -33,10 +33,13 @@ public class ArenaManager : MonoBehaviour
     /// </summary>
     public void TakeArenaDamage(int damage)
     {
-        GameManager gm = GameManager.Instance;
-        if (gm != null)
+        if (GameManager.Instance != null)
         {
-            gm.ApplyOrganDamage(damage * 10f); // Cada hit = 10 de dano base
+            GameManager.Instance.ApplyOrganDamage(damage * 10f);
+        }
+        else if (InfiniteGameManager.Instance != null)
+        {
+            InfiniteGameManager.Instance.ApplyOrganDamage(damage * 10f);
         }
 
         // Flash vermelho no chão

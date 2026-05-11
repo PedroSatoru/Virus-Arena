@@ -84,11 +84,16 @@ public class SetupMenuScene : Editor
 
         // ============ BOTÃO JOGAR ============
         GameObject playBtn = CreateButton("PlayButton", canvasObj.transform, "JOGAR",
-            new Vector2(0.5f, 0.28f), new Vector2(280, 55), new Color(0.7f, 0.12f, 0.12f), 24);
+            new Vector2(0.5f, 0.34f), new Vector2(280, 55), new Color(0.7f, 0.12f, 0.12f), 24);
         menuCtrl.playButton = playBtn.GetComponent<Button>();
 
+        // ============ BOTÃO MODO INFINITO ============
+        GameObject infiniteBtn = CreateButton("InfiniteButton", canvasObj.transform, "∞  MODO INFINITO",
+            new Vector2(0.5f, 0.24f), new Vector2(280, 46), new Color(0.35f, 0.05f, 0.5f), 20);
+        menuCtrl.infiniteButton = infiniteBtn.GetComponent<Button>();
+
         // ============ BOTÃO CRÉDITOS ============
-        GameObject creditsBtn = CreateButton("CreditsButton", canvasObj.transform, "TUTORIAL / CR\u00c9DITOS",
+        GameObject creditsBtn = CreateButton("CreditsButton", canvasObj.transform, "TUTORIAL / CRÉDITOS",
             new Vector2(0.25f, 0.13f), new Vector2(240, 40), new Color(0.3f, 0.15f, 0.15f), 16);
         menuCtrl.creditsButton = creditsBtn.GetComponent<Button>();
 
@@ -204,11 +209,18 @@ public class SetupMenuScene : Editor
     {
         var scenes = new EditorBuildSettingsScene[]
         {
-            new EditorBuildSettingsScene("Assets/Scenes/MainMenu.unity", true),
-            new EditorBuildSettingsScene("Assets/Scenes/GameScene.unity", true),
+            new EditorBuildSettingsScene("Assets/Scenes/MainMenu.unity",           true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene.unity",           true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Ph2.unity",       true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Ph3.unity",       true),
+            // Modo Infinito
+            new EditorBuildSettingsScene("Assets/Scenes/InfiniteSelectScene.unity", true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Inf1.unity",      true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Inf2.unity",      true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Inf3.unity",      true),
         };
         EditorBuildSettings.scenes = scenes;
-        Debug.Log("\u2705 Build Settings: MainMenu (0), GameScene (1)");
+        Debug.Log("\u2705 Build Settings atualizadas com todas as cenas (normal + infinito).");
     }
 
     // ============================================================

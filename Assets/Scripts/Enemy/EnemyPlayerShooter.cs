@@ -50,6 +50,7 @@ public class EnemyPlayerShooter : MonoBehaviour
         // Movimento horizontal
         float currentSpeed = horizontalSpeed;
         if (GameManager.Instance != null) currentSpeed *= GameManager.Instance.speedMultiplier;
+        else if (InfiniteGameManager.Instance != null) currentSpeed *= InfiniteGameManager.Instance.speedMultiplier;
 
         float newX = transform.position.x + moveDirection * currentSpeed * Time.deltaTime;
 

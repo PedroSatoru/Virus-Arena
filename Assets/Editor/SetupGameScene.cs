@@ -93,6 +93,321 @@ public class SetupGameScene : Editor
         Debug.Log("✅ GameScene_Ph3 (Fase 3) criada com sucesso!");
     }
 
+    // ============================================================
+    // MODO INFINITO
+    // ============================================================
+
+    [MenuItem("Virus Arena/Infinite Mode/Setup Infinite Select Scene")]
+    public static void SetupInfiniteSelect()
+    {
+        Sprite whiteSprite = GetPersistentWhiteSprite();
+        BuildInfiniteSelectScene(whiteSprite);
+        UpdateBuildSettings();
+        Debug.Log("✅ InfiniteSelectScene criada com sucesso!");
+    }
+
+    [MenuItem("Virus Arena/Infinite Mode/Setup Infinite Scene - FASE 1")]
+    public static void SetupInfinitePhase1()
+    {
+        Sprite whiteSprite = GetPersistentWhiteSprite();
+        BuildInfinitePhase(1, "Assets/Scenes/GameScene_Inf1.unity", whiteSprite);
+        UpdateBuildSettings();
+        Debug.Log("✅ GameScene_Inf1 (Infinito Fase 1) criada com sucesso!");
+    }
+
+    [MenuItem("Virus Arena/Infinite Mode/Setup Infinite Scene - FASE 2")]
+    public static void SetupInfinitePhase2()
+    {
+        Sprite whiteSprite = GetPersistentWhiteSprite();
+        BuildInfinitePhase(2, "Assets/Scenes/GameScene_Inf2.unity", whiteSprite);
+        UpdateBuildSettings();
+        Debug.Log("✅ GameScene_Inf2 (Infinito Fase 2) criada com sucesso!");
+    }
+
+    [MenuItem("Virus Arena/Infinite Mode/Setup Infinite Scene - FASE 3")]
+    public static void SetupInfinitePhase3()
+    {
+        Sprite whiteSprite = GetPersistentWhiteSprite();
+        BuildInfinitePhase(3, "Assets/Scenes/GameScene_Inf3.unity", whiteSprite);
+        UpdateBuildSettings();
+        Debug.Log("✅ GameScene_Inf3 (Infinito Fase 3) criada com sucesso!");
+    }
+
+    // ============================================================
+    // BUILD — FASE INFINITA (reutiliza a arena normal, troca GameManager)
+    // ============================================================
+    static void BuildInfinitePhase(int phase, string scenePath, Sprite whiteSprite)
+    {
+        var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+        CreateCamera();
+        CreateLighting();
+        CreateBackground(whiteSprite);
+        CreateArena(whiteSprite, phase);
+        GameObject player = CreatePlayer(whiteSprite);
+
+        if (!AssetDatabase.IsValidFolder("Assets/Prefabs"))
+            AssetDatabase.CreateFolder("Assets", "Prefabs");
+
+        GameObject playerBulletPrefab  = CreatePlayerBulletPrefab(whiteSprite);
+        GameObject enemyBulletPrefab   = CreateEnemyBulletPrefab(whiteSprite);
+        GameObject purpleBulletPrefab  = CreatePurpleBulletPrefab(whiteSprite);
+        GameObject antiCorpoPrefab     = CreateAntiCorpoPrefab(whiteSprite, enemyBulletPrefab);
+        GameObject playerShooterPrefab = CreatePlayerShooterPrefab(whiteSprite, purpleBulletPrefab);
+        GameObject kamikazePrefab      = CreateKamikazePrefab(whiteSprite);
+
+        // Boss disponível em todas as fases infinitas (aparece na fase 3 a cada 5 min)
+        GameObject bossPrefab = CreateBossPrefab(whiteSprite, enemyBulletPrefab, purpleBulletPrefab);
+
+        CreateInitialEnemy(antiCorpoPrefab);
+
+        GameObject hudCanvas = CreateInfiniteHUD(phase);
+        CreateInfiniteGameManager(antiCorpoPrefab, playerShooterPrefab, kamikazePrefab, bossPrefab, hudCanvas, phase);
+
+        PlayerShooting ps = player.GetComponent<PlayerShooting>();
+        if (ps != null) ps.bulletPrefab = playerBulletPrefab;
+
+        EditorSceneManager.SaveScene(scene, scenePath);
+    }
+
+    // ============================================================
+    // BUILD — CENA DE SELEÇÃO DO MODO INFINITO
+    // ============================================================
+    static void BuildInfiniteSelectScene(Sprite whiteSprite)
+    {
+        var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+        // Câmera básica
+        CreateCamera();
+        CreateLighting();
+
+        // Canvas principal
+        GameObject canvasObj = new GameObject("InfiniteSelect_Canvas");
+        Canvas canvas = canvasObj.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 100;
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+        canvasObj.AddComponent<GraphicRaycaster>();
+
+        InfiniteSelectMenuController ctrl = canvasObj.AddComponent<InfiniteSelectMenuController>();
+
+        // EventSystem
+        if (Object.FindFirstObjectByType<EventSystem>() == null)
+        {
+            GameObject evSys = new GameObject("EventSystem");
+            evSys.AddComponent<EventSystem>();
+            evSys.AddComponent<StandaloneInputModule>();
+        }
+
+        // Fundo escuro
+        GameObject bg = CreateUIImage("Background", canvasObj.transform, new Color(0.05f, 0f, 0.08f, 1f));
+        RectTransform bgRT = bg.GetComponent<RectTransform>();
+        bgRT.anchorMin = Vector2.zero;
+        bgRT.anchorMax = Vector2.one;
+        bgRT.sizeDelta = Vector2.zero;
+
+        // Título
+        GameObject title = CreateUIText("Title", canvasObj.transform, "MODO INFINITO", 48, TextAnchor.MiddleCenter, new Color(0.9f, 0.3f, 1f));
+        RectTransform titleRT = title.GetComponent<RectTransform>();
+        titleRT.anchorMin = new Vector2(0.1f, 0.8f);
+        titleRT.anchorMax = new Vector2(0.9f, 1f);
+        titleRT.sizeDelta = Vector2.zero;
+        title.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+        // Subtítulo
+        GameObject sub = CreateUIText("Subtitle", canvasObj.transform, "Selecione uma fase para jogar em modo sem fim", 22, TextAnchor.MiddleCenter, new Color(0.8f, 0.7f, 0.9f));
+        RectTransform subRT = sub.GetComponent<RectTransform>();
+        subRT.anchorMin = new Vector2(0.1f, 0.73f);
+        subRT.anchorMax = new Vector2(0.9f, 0.83f);
+        subRT.sizeDelta = Vector2.zero;
+
+        // ─── 3 Caixas de seleção ───
+        string[] phaseNames     = { "FASE 1\nPULMÃO",      "FASE 2\nCORAÇÃO",      "FASE 3\nCÉREBRO"       };
+        Color[]  phaseColors    = { new Color(0.55f, 0.1f, 0.2f), new Color(0.1f, 0.15f, 0.55f), new Color(0.15f, 0.35f, 0.1f) };
+        Color[]  phaseBtnColors = { new Color(0.75f, 0.15f, 0.3f), new Color(0.15f, 0.2f, 0.75f), new Color(0.2f, 0.5f, 0.15f) };
+        float[]  anchorXMins    = { 0.04f,  0.37f, 0.70f };
+        float[]  anchorXMaxes   = { 0.34f,  0.67f, 0.97f };
+
+        Button[] phaseButtons     = new Button[3];
+        Text[]   phaseRecordTexts = new Text[3];
+
+        for (int i = 0; i < 3; i++)
+        {
+            // Caixa principal
+            GameObject box = CreateUIImage($"PhaseBox_{i+1}", canvasObj.transform, phaseColors[i]);
+            RectTransform boxRT = box.GetComponent<RectTransform>();
+            boxRT.anchorMin = new Vector2(anchorXMins[i], 0.22f);
+            boxRT.anchorMax = new Vector2(anchorXMaxes[i], 0.72f);
+            boxRT.sizeDelta = Vector2.zero;
+
+            // Nome da fase
+            GameObject nameText = CreateUIText($"PhaseName_{i+1}", box.transform, phaseNames[i], 28, TextAnchor.UpperCenter, Color.white);
+            RectTransform nameRT = nameText.GetComponent<RectTransform>();
+            nameRT.anchorMin = new Vector2(0.05f, 0.6f);
+            nameRT.anchorMax = new Vector2(0.95f, 0.95f);
+            nameRT.sizeDelta = Vector2.zero;
+            nameText.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            // Record
+            GameObject recordText = CreateUIText($"PhaseRecord_{i+1}", box.transform, "RECORDE: --:--", 18, TextAnchor.MiddleCenter, new Color(1f, 1f, 0.6f));
+            RectTransform recordRT = recordText.GetComponent<RectTransform>();
+            recordRT.anchorMin = new Vector2(0.05f, 0.4f);
+            recordRT.anchorMax = new Vector2(0.95f, 0.62f);
+            recordRT.sizeDelta = Vector2.zero;
+            phaseRecordTexts[i] = recordText.GetComponent<Text>();
+
+            // Botão JOGAR
+            GameObject btnObj = CreateUIButton($"Phase{i+1}Btn", box.transform, "▶  JOGAR", new Vector2(0, -40), new Vector2(220, 55), phaseBtnColors[i]);
+            RectTransform btnRT = btnObj.GetComponent<RectTransform>();
+            btnRT.anchorMin = new Vector2(0.5f, 0.05f);
+            btnRT.anchorMax = new Vector2(0.5f, 0.05f);
+            btnRT.anchoredPosition = new Vector2(0, 30);
+            btnRT.sizeDelta = new Vector2(220, 55);
+            phaseButtons[i] = btnObj.GetComponent<Button>();
+        }
+
+        // Botão Voltar
+        GameObject backBtn = CreateUIButton("BackBtn", canvasObj.transform, "← MENU PRINCIPAL", new Vector2(0, 0), new Vector2(250, 50), new Color(0.3f, 0.3f, 0.35f));
+        RectTransform backRT = backBtn.GetComponent<RectTransform>();
+        backRT.anchorMin = new Vector2(0.5f, 0f);
+        backRT.anchorMax = new Vector2(0.5f, 0f);
+        backRT.anchoredPosition = new Vector2(0, 60);
+        backRT.sizeDelta = new Vector2(250, 50);
+
+        // Conectar referências ao controller
+        ctrl.phase1Button = phaseButtons[0];
+        ctrl.phase2Button = phaseButtons[1];
+        ctrl.phase3Button = phaseButtons[2];
+        ctrl.phase1RecordText = phaseRecordTexts[0];
+        ctrl.phase2RecordText = phaseRecordTexts[1];
+        ctrl.phase3RecordText = phaseRecordTexts[2];
+        ctrl.backButton = backBtn.GetComponent<Button>();
+
+        EditorSceneManager.SaveScene(scene, "Assets/Scenes/InfiniteSelectScene.unity");
+    }
+
+    // ============================================================
+    // HUD DO MODO INFINITO
+    // ============================================================
+    /// <summary>
+    /// Cria a HUD para as cenas de Modo Infinito.
+    /// Igual à HUD normal, exceto:
+    ///   - Timer exibe tempo crescente (0:00 → ∞)
+    ///   - Painel de Game Over mostra tempo + recorde
+    ///   - Painel de PowerUp in-game (aparece a cada 3 min)
+    ///   - Texto de fase indica "INFINITO — FASE X"
+    /// </summary>
+    static GameObject CreateInfiniteHUD(int phase)
+    {
+        // Reutiliza a HUD base
+        GameObject canvasObj = CreateHUD(phase);
+
+        // Corrigir nome da fase para indicar modo infinito
+        HUDManager hudMgr = canvasObj.GetComponent<HUDManager>();
+        if (hudMgr != null && hudMgr.phaseNameText != null)
+        {
+            string infLabel = phase switch
+            {
+                1 => "∞ INFINITO — PULMÃO",
+                2 => "∞ INFINITO — CORAÇÃO",
+                _ => "∞ INFINITO — CÉREBRO",
+            };
+            hudMgr.phaseNameText.text = infLabel;
+        }
+
+        // Timer começa em 0:00 (crescente)
+        if (hudMgr != null && hudMgr.timerText != null)
+            hudMgr.timerText.text = "0:00";
+
+        // ==== PAINEL DE GAME OVER INFINITO ====
+        // Substitui o GoPanel normal por um com campos de tempo e recorde
+        Transform goOld = canvasObj.transform.Find("GameOverPanel");
+        if (goOld != null) Object.DestroyImmediate(goOld.gameObject);
+
+        GameObject goPanel = CreateUIImage("InfiniteGameOverPanel", canvasObj.transform, new Color(0.05f, 0f, 0.1f, 0.9f));
+        RectTransform goRT = goPanel.GetComponent<RectTransform>();
+        goRT.anchorMin = Vector2.zero;
+        goRT.anchorMax = Vector2.one;
+        goRT.sizeDelta = Vector2.zero;
+
+        CreateUIText("GOTitle", goPanel.transform, "FIM DA RUN", 48, TextAnchor.MiddleCenter, new Color(0.9f, 0.3f, 1f))
+            .GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 120);
+
+        GameObject timeTextObj = CreateUIText("TimeText", goPanel.transform, "TEMPO: 0:00", 30, TextAnchor.MiddleCenter, Color.white);
+        timeTextObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 50);
+
+        GameObject recordTextObj = CreateUIText("RecordText", goPanel.transform, "RECORDE: --:--", 22, TextAnchor.MiddleCenter, new Color(1f, 1f, 0.5f));
+        recordTextObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 10);
+
+        GameObject newRecordTextObj = CreateUIText("NewRecordText", goPanel.transform, "✦ NOVO RECORDE! ✦", 26, TextAnchor.MiddleCenter, new Color(0f, 1f, 0.4f));
+        newRecordTextObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -30);
+        newRecordTextObj.GetComponent<Text>().fontStyle = FontStyle.Bold;
+        newRecordTextObj.SetActive(false); // Mostrado apenas se bater recorde
+
+        CreateUIButton("RestartBtn",  goPanel.transform, "TENTAR NOVAMENTE",  new Vector2(0, -90),  new Vector2(280, 50), new Color(0.4f, 0.1f, 0.6f));
+        CreateUIButton("GoMenuBtn",   goPanel.transform, "SELECIONAR FASE",   new Vector2(0, -150), new Vector2(280, 50), new Color(0.3f, 0.3f, 0.35f));
+
+        goPanel.SetActive(false);
+
+        return canvasObj;
+    }
+
+    // ============================================================
+    // GAME MANAGER DO MODO INFINITO
+    // ============================================================
+    static GameObject CreateInfiniteGameManager(
+        GameObject antiCorpoPrefab, GameObject playerShooterPrefab,
+        GameObject kamikazePrefab, GameObject bossPrefab,
+        GameObject hudCanvas, int phase)
+    {
+        GameObject gmObj = new GameObject("InfiniteGameManager");
+        InfiniteGameManager igm = gmObj.AddComponent<InfiniteGameManager>();
+
+        igm.currentPhase     = phase;
+        igm.bodyMaxHP        = 1500f;
+        igm.organMaxHP       = 500f;
+        igm.antiCorpoPrefab  = antiCorpoPrefab;
+        igm.playerShooterPrefab = playerShooterPrefab;
+        igm.kamikazePrefab   = kamikazePrefab;
+        igm.bossPrefab       = bossPrefab;
+        igm.baseSpawnInterval = 2.5f;
+        igm.minSpawnInterval  = 1f;
+        igm.maxTotalEnemies   = 8;
+        igm.maxPerType        = 3;
+        igm.arenaMinX = -9f;
+        igm.arenaMaxX =  9f;
+        igm.arenaMinY = phase >= 3 ? -2f : 2f;
+        igm.arenaMaxY = 4f;
+
+        if (hudCanvas != null)
+        {
+            // Painel de Game Over infinito
+            Transform goPanelT = hudCanvas.transform.Find("InfiniteGameOverPanel");
+            if (goPanelT != null)
+            {
+                igm.infiniteGameOverPanel = goPanelT.gameObject;
+                igm.infiniteTimeText   = goPanelT.Find("TimeText")?.GetComponent<Text>();
+                igm.infiniteRecordText = goPanelT.Find("RecordText")?.GetComponent<Text>();
+                igm.infiniteNewRecordText = goPanelT.Find("NewRecordText")?.GetComponent<Text>();
+            }
+
+            // Painel de PowerUp (reutiliza o mesmo da HUD normal)
+            Transform pUpT = hudCanvas.transform.Find("PowerUpPanel");
+            if (pUpT != null) igm.powerUpPanel = pUpT.gameObject;
+
+            // Barra de vida do boss (fase 3)
+            if (phase == 3)
+            {
+                Transform bossBarT = hudCanvas.transform.Find("BossHealthPanel");
+                if (bossBarT != null) igm.bossHealthPanel = bossBarT.gameObject;
+            }
+        }
+
+        return gmObj;
+    }
+
     static void BuildPhase(int phase, string scenePath, Sprite whiteSprite)
     {
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -138,10 +453,15 @@ public class SetupGameScene : Editor
     {
         var scenes = new EditorBuildSettingsScene[]
         {
-            new EditorBuildSettingsScene("Assets/Scenes/MainMenu.unity", true),
-            new EditorBuildSettingsScene("Assets/Scenes/GameScene.unity", true),
-            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Ph2.unity", true),
-            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Ph3.unity", true)
+            new EditorBuildSettingsScene("Assets/Scenes/MainMenu.unity",           true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene.unity",           true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Ph2.unity",       true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Ph3.unity",       true),
+            // Modo Infinito
+            new EditorBuildSettingsScene("Assets/Scenes/InfiniteSelectScene.unity", true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Inf1.unity",      true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Inf2.unity",      true),
+            new EditorBuildSettingsScene("Assets/Scenes/GameScene_Inf3.unity",      true),
         };
         EditorBuildSettings.scenes = scenes;
     }

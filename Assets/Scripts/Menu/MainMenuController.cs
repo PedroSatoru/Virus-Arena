@@ -12,6 +12,7 @@ public class MainMenuController : MonoBehaviour
     [Header("Referências UI")]
     public Text titleText;
     public Button playButton;
+    public Button infiniteButton;  // Botão do Modo Infinito
     public Button creditsButton;
     public Button quitButton;
     public Text creditsText;
@@ -24,6 +25,8 @@ public class MainMenuController : MonoBehaviour
         // Configurar botões
         if (playButton != null)
             playButton.onClick.AddListener(OnPlayClicked);
+        if (infiniteButton != null)
+            infiniteButton.onClick.AddListener(OnInfiniteClicked);
         if (creditsButton != null)
             creditsButton.onClick.AddListener(OnCreditsClicked);
         if (quitButton != null)
@@ -58,6 +61,11 @@ public class MainMenuController : MonoBehaviour
     void OnPlayClicked()
     {
         SceneManager.LoadScene("GameScene");
+    }
+
+    void OnInfiniteClicked()
+    {
+        SceneManager.LoadScene("InfiniteSelectScene");
     }
 
     void OnCreditsClicked()

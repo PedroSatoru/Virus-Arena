@@ -43,9 +43,10 @@ public class EnemyShooter : MonoBehaviour
         // Flutuação vertical
         float newY = startY + Mathf.Sin(Time.time * floatSpeed) * floatAmplitude;
         
-        // Movimento horizontal (escala com GameManager)
+        // Movimento horizontal (escala com GameManager ou InfiniteGameManager)
         float currentSpeed = horizontalSpeed;
         if (GameManager.Instance != null) currentSpeed *= GameManager.Instance.speedMultiplier;
+        else if (InfiniteGameManager.Instance != null) currentSpeed *= InfiniteGameManager.Instance.speedMultiplier;
         
         float newX = transform.position.x + moveDirection * currentSpeed * Time.deltaTime;
         

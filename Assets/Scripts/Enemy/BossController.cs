@@ -236,6 +236,10 @@ public class BossController : MonoBehaviour
             {
                 GameManager.Instance.ApplyBossDamage(bodyDamagePerAttack);
             }
+            else if (InfiniteGameManager.Instance != null)
+            {
+                InfiniteGameManager.Instance.ApplyBossDamage(bodyDamagePerAttack);
+            }
 
             yield return new WaitForSeconds(0.3f);
 

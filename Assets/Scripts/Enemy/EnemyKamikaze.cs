@@ -51,6 +51,8 @@ public class EnemyKamikaze : MonoBehaviour
             float currentSpeed = baseMoveSpeed;
             if (GameManager.Instance != null)
                 currentSpeed *= GameManager.Instance.speedMultiplier;
+            else if (InfiniteGameManager.Instance != null)
+                currentSpeed *= InfiniteGameManager.Instance.speedMultiplier;
 
             Vector2 newPos = Vector2.MoveTowards(rb.position, playerTransform.position, currentSpeed * Time.fixedDeltaTime);
             rb.MovePosition(newPos);
@@ -97,9 +99,12 @@ public class EnemyKamikaze : MonoBehaviour
             hitArena = true;
         }
 
-        if (hitArena && GameManager.Instance != null)
+        if (hitArena)
         {
-            GameManager.Instance.ApplyOrganDamage(bodyDamage);
+            if (GameManager.Instance != null)
+                GameManager.Instance.ApplyOrganDamage(bodyDamage);
+            else if (InfiniteGameManager.Instance != null)
+                InfiniteGameManager.Instance.ApplyOrganDamage(bodyDamage);
         }
 
         // Morre imediatamente sem dar trigger em "OnEnemyDeath" padrão que spawna outros,

@@ -95,4 +95,13 @@ public class PlayerHealth : MonoBehaviour
     {
         return isInvulnerable;
     }
+
+    /// <summary>
+    /// Força a atualização da HUD com o valor atual de corações.
+    /// Útil quando outra classe altera currentHearts diretamente.
+    /// </summary>
+    public void ForceRefreshHUD()
+    {
+        OnHealthChanged?.Invoke(currentHearts);
+    }
 }

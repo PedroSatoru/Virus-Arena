@@ -34,12 +34,14 @@ public class HUDManager : MonoBehaviour
     public GameObject pausePanel;
 
     private GameManager gameManager;
+    private InfiniteGameManager infiniteGameManager;
     private PlayerHealth playerHealth;
 
     void Start()
     {
-        gameManager = FindFirstObjectByType<GameManager>();
-        playerHealth = FindFirstObjectByType<PlayerHealth>();
+        gameManager         = FindFirstObjectByType<GameManager>();
+        infiniteGameManager = FindFirstObjectByType<InfiniteGameManager>();
+        playerHealth        = FindFirstObjectByType<PlayerHealth>();
 
         if (playerHealth != null)
         {
@@ -55,16 +57,20 @@ public class HUDManager : MonoBehaviour
 
     void Update()
     {
-        if (gameManager == null) return;
-
-        // Atualizar timer
-        UpdateTimer(gameManager.timeRemaining);
-
-        // Atualizar barra de vida do órgão
-        UpdateOrganHealth(gameManager.organCurrentHP, gameManager.organMaxHP);
-
-        // Atualizar barra de vida do corpo
-        UpdateBodyHealth(gameManager.bodyCurrentHP, gameManager.bodyMaxHP);
+        // Suporte a GameManager normal e InfiniteGameManager
+        if (infiniteGameManager != null)
+        {
+            UpdateTimerCountUp(infiniteGameManager.timeElapsed);
+            UpdateOrganHealth(infiniteGameManager.organCurrentHP, infiniteGameManager.organMaxHP);
+            UpdateBodyHealth(infiniteGameManager.bodyCurrentHP, infiniteGameManager.bodyMaxHP);
+        }
+        else if (gameManager != null)
+        {
+            UpdateTimer(gameManager.timeRemaining);
+            UpdateOrganHealth(gameManager.organCurrentHP, gameManager.organMaxHP);
+            UpdateBodyHealth(gameManager.bodyCurrentHP, gameManager.bodyMaxHP);
+        }
+        else return;
 
         // Toggle pausa
         if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
@@ -90,7 +96,7 @@ public class HUDManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Atualiza o cronômetro regressivo.
+    /// Atualiza o cronômetro regressivo (modo normal).
     /// </summary>
     public void UpdateTimer(float timeRemaining)
     {
@@ -98,6 +104,18 @@ public class HUDManager : MonoBehaviour
 
         int minutes = Mathf.FloorToInt(timeRemaining / 60f);
         int seconds = Mathf.FloorToInt(timeRemaining % 60f);
+        timerText.text = string.Format("{0}:{1:D2}", minutes, seconds);
+    }
+
+    /// <summary>
+    /// Atualiza o cronômetro progressivo (modo infinito).
+    /// </summary>
+    public void UpdateTimerCountUp(float timeElapsed)
+    {
+        if (timerText == null) return;
+
+        int minutes = Mathf.FloorToInt(timeElapsed / 60f);
+        int seconds = Mathf.FloorToInt(timeElapsed % 60f);
         timerText.text = string.Format("{0}:{1:D2}", minutes, seconds);
     }
 

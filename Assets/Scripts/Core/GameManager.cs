@@ -96,10 +96,6 @@ public class GameManager : MonoBehaviour
         damageMultiplier = currentPhase;
         spawnTimer = 2f;
 
-        // TESTE: Simula que o pulmão foi perdido na fase 1 para testar cutscene de fim
-        if (currentPhase == 3 && GlobalState.organLostPhase == 0)
-            GlobalState.organLostPhase = 1;
-
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (powerUpPanel != null) powerUpPanel.SetActive(false);
         if (victoryPanel != null) victoryPanel.SetActive(false);

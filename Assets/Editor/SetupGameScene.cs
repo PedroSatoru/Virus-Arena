@@ -1002,7 +1002,7 @@ public class SetupGameScene : Editor
         rb.bodyType = RigidbodyType2D.Kinematic;
 
         EnemyHealth health = boss.AddComponent<EnemyHealth>();
-        health.maxHP = 100;
+        health.maxHP = 70; // Reduzido 30% (era 100)
         health.isInvulnerable = true; // Começa invulnerável
 
         BossController bc = boss.AddComponent<BossController>();
@@ -1334,7 +1334,7 @@ public class SetupGameScene : Editor
     {
         GameObject gmObj = new GameObject("GameManager");
         GameManager gm = gmObj.AddComponent<GameManager>();
-        gm.totalTime = (phase == 1 || phase == 3) ? 10f : 180f; // Fases 1 e 3 com 10 seg para teste
+        gm.totalTime = 180f; // 3 minutos para todas as fases
         gm.bodyMaxHP = 1500f;
         gm.organMaxHP = 500f;
         gm.currentPhase = phase;

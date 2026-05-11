@@ -180,7 +180,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58695b9c3ac940346a5c6b1e8f97e9e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
-  maxHP: 100
+  maxHP: 70
   isInvulnerable: 1
 --- !u!114 &4817448343911003085
 MonoBehaviour:

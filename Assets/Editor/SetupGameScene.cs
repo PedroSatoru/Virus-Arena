@@ -157,7 +157,13 @@ public class SetupGameScene : Editor
 
         CreateCamera();
         CreateLighting();
-        CreateBackground(whiteSprite);
+
+        string bgName = phase switch {
+            1 => "pulmao",
+            2 => "coraçao",
+            _ => "Cerebro"
+        };
+        CreateBackground(bgName);
         CreateArena(whiteSprite, phase);
         GameObject player = CreatePlayer(whiteSprite);
 
@@ -430,7 +436,13 @@ public class SetupGameScene : Editor
         // ============ SETUP BASE ============
         CreateCamera();
         CreateLighting();
-        CreateBackground(whiteSprite);
+
+        string bgName = phase switch {
+            1 => "pulmao",
+            2 => "coraçao",
+            _ => "Cerebro"
+        };
+        CreateBackground(bgName);
         GameObject arenaRoot = CreateArena(whiteSprite, phase);
         GameObject player = CreatePlayer(whiteSprite);
 
@@ -519,37 +531,28 @@ public class SetupGameScene : Editor
     // ============================================================
     // FUNDO
     // ============================================================
-    static void CreateBackground(Sprite sprite)
+    static void CreateBackground(string spriteName)
     {
-        // Fundo principal
-        GameObject bg = CreateSprite("Background_Lung", sprite, new Color(0.65f, 0.25f, 0.3f),
-            new Vector3(0, 0, 5), new Vector3(40f, 12f, 1f));
+        Sprite bgSprite = GetSprite(spriteName);
+        
+        Vector3 pos;
+        Vector3 scale;
+
+        if (spriteName == "Cerebro")
+        {
+            // Medidas específicas para a Fase 3 (Cérebro)
+            pos = new Vector3(-0.2796f, -0.2115f, 5f);
+            scale = new Vector3(0.63674f, 0.7504317f, 1f);
+        }
+        else
+        {
+            // Medidas para Fase 1 e 2
+            pos = new Vector3(0.0219f, -0.1971f, 5f);
+            scale = new Vector3(0.9937807f, 0.4689629f, 1f);
+        }
+
+        GameObject bg = CreateSprite("Background_Artwork", bgSprite, Color.white, pos, scale);
         bg.GetComponent<SpriteRenderer>().sortingOrder = -10;
-
-        // Veias decorativas
-        for (int i = 0; i < 6; i++)
-        {
-            float xPos = -7f + i * 2.5f;
-            float yPos = Mathf.Sin(i * 1.2f) * 2f;
-            float rot = -45f + i * 15f;
-            GameObject vein = CreateSprite($"Vein_{i}", sprite, new Color(0.5f, 0.15f, 0.2f, 0.6f),
-                new Vector3(xPos, yPos, 4), new Vector3(3f + i * 0.5f, 0.15f, 1f));
-            vein.transform.rotation = Quaternion.Euler(0, 0, rot);
-            vein.GetComponent<SpriteRenderer>().sortingOrder = -9;
-            vein.transform.parent = bg.transform;
-        }
-
-        // Alvéolos decorativos
-        for (int i = 0; i < 8; i++)
-        {
-            float xPos = -8f + i * 2.2f;
-            float yPos = Mathf.Cos(i * 0.9f) * 3f;
-            float size = 0.5f + (i % 3) * 0.4f;
-            GameObject alveolus = CreateSprite($"Alveolus_{i}", sprite, new Color(0.8f, 0.4f, 0.5f, 0.3f),
-                new Vector3(xPos, yPos, 3), new Vector3(size, size, 1f));
-            alveolus.GetComponent<SpriteRenderer>().sortingOrder = -8;
-            alveolus.transform.parent = bg.transform;
-        }
     }
 
     // ============================================================

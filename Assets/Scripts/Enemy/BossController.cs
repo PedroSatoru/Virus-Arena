@@ -42,6 +42,11 @@ public class BossController : MonoBehaviour
     private int currentPattern = 0;
     private bool isActive = false;
 
+    // --- Audio ---
+    private AudioSource audioSource;
+    private AudioClip chargeClip;
+    private AudioClip shootClip;
+
     // 2 padrões de ataque, cada um com 8 alvos
     // Índice 0 = amarelo (corpo), índices 1-7 = roxo (player)
     private Vector2[][] attackPatterns;
@@ -57,6 +62,13 @@ public class BossController : MonoBehaviour
 
         if (health != null)
             health.OnEnemyDeath += HandleDeath;
+
+        // Configurar Audio
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.volume = 0.7f;
+        chargeClip = Resources.Load<AudioClip>("Audio/Boss_loaging_shoot");
+        shootClip = Resources.Load<AudioClip>("Audio/Boss_shoot");
 
         DefineAttackPatterns();
     }
@@ -202,6 +214,12 @@ public class BossController : MonoBehaviour
             currentState = BossState.Telegraphing;
             if (health != null) health.isInvulnerable = true;
 
+            if (audioSource != null && chargeClip != null)
+            {
+                audioSource.clip = chargeClip;
+                audioSource.Play();
+            }
+
             // O tempo de telegrafia depende do alvo AMARELO
             float telegraphTime = telegraphDuration;
             if (yellowTarget.y >= 4f)
@@ -229,6 +247,13 @@ public class BossController : MonoBehaviour
 
             // === ATACAR ===
             currentState = BossState.Attacking;
+
+            if (audioSource != null && shootClip != null)
+            {
+                audioSource.clip = shootClip;
+                audioSource.Play();
+            }
+
             FireAttack(purplePattern, yellowTarget);
 
             // Aplicar dano direto ao corpo E órgão

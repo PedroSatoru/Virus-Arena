@@ -32,10 +32,20 @@ public class EnemyShooter : MonoBehaviour
     private float startY;
     private float moveDirection = 1f;
 
+    // --- Audio ---
+    private AudioSource audioSource;
+    private AudioClip shootClip;
+
     void Start()
     {
         startY = transform.position.y;
         nextFireTime = Time.time + Random.Range(0.5f, fireInterval);
+
+        // Configurar Audio
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.volume = 0.5f;
+        shootClip = Resources.Load<AudioClip>("Audio/enemy1_shoot");
     }
 
     void Update()
@@ -73,6 +83,13 @@ public class EnemyShooter : MonoBehaviour
     void FireAtArena()
     {
         if (bulletPrefab == null) return;
+
+        // Toca o som interrompendo o anterior
+        if (audioSource != null && shootClip != null)
+        {
+            audioSource.clip = shootClip;
+            audioSource.Play();
+        }
 
         Vector2 targetPos;
         

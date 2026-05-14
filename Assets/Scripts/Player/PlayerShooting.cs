@@ -19,6 +19,10 @@ public class PlayerShooting : MonoBehaviour
     private float nextFireTime;
     private Camera mainCamera;
 
+    // --- Audio ---
+    private AudioSource audioSource;
+    private AudioClip shootClip;
+
     void Start()
     {
         mainCamera = Camera.main;
@@ -32,6 +36,12 @@ public class PlayerShooting : MonoBehaviour
             aimLine.endColor = new Color(0.5f, 0.8f, 1f, 0.1f);
             aimLine.positionCount = 2;
         }
+
+        // Configurar Audio
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.volume = 0.6f;
+        shootClip = Resources.Load<AudioClip>("Audio/playerShoot");
     }
 
     void Update()
@@ -66,6 +76,13 @@ public class PlayerShooting : MonoBehaviour
 
     void Fire(Vector2 direction)
     {
+        // Toca o som interrompendo o anterior (se houver)
+        if (audioSource != null && shootClip != null)
+        {
+            audioSource.clip = shootClip;
+            audioSource.Play();
+        }
+
         if (GlobalState.hasTripleShot)
         {
             float[] angles = { -15f, 0f, 15f };

@@ -30,6 +30,10 @@ public class EnemyPlayerShooter : MonoBehaviour
     private float moveDirection = -1f; // Começa indo para o lado oposto do Atirador Anti-Corpo
     private Transform playerTransform;
 
+    // --- Audio ---
+    private AudioSource audioSource;
+    private AudioClip shootClip;
+
     void Start()
     {
         startY = transform.position.y;
@@ -40,6 +44,12 @@ public class EnemyPlayerShooter : MonoBehaviour
         GameObject playerObj = GameObject.FindWithTag("Player");
         if (playerObj != null)
             playerTransform = playerObj.transform;
+
+        // Configurar Audio
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.volume = 0.5f;
+        shootClip = Resources.Load<AudioClip>("Audio/Enemy1-shoot");
     }
 
     void Update()
@@ -76,6 +86,13 @@ public class EnemyPlayerShooter : MonoBehaviour
     void FireAtPlayer()
     {
         if (bulletPrefab == null || playerTransform == null) return;
+
+        // Toca o som interrompendo o anterior
+        if (audioSource != null && shootClip != null)
+        {
+            audioSource.clip = shootClip;
+            audioSource.Play();
+        }
 
         // Calcular posição predita do player
         Vector2 playerPos = playerTransform.position;

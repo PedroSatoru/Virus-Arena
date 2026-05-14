@@ -25,6 +25,9 @@ public class EnemyKamikaze : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private bool hasExploded = false;
 
+    // --- Audio ---
+    private AudioClip explosionClip;
+
     void Start()
     {
         health = GetComponent<EnemyHealth>();
@@ -41,6 +44,9 @@ public class EnemyKamikaze : MonoBehaviour
         {
             playerTransform = playerObj.transform;
         }
+
+        // Carregar Audio
+        explosionClip = Resources.Load<AudioClip>("Audio/Kamikaze_explosion");
     }
 
     void FixedUpdate()
@@ -77,6 +83,17 @@ public class EnemyKamikaze : MonoBehaviour
     void Explode()
     {
         hasExploded = true;
+
+        if (explosionClip != null)
+        {
+            GameObject audioObj = new GameObject("KamikazeAudio");
+            AudioSource src = audioObj.AddComponent<AudioSource>();
+            src.clip = explosionClip;
+            src.volume = 0.8f;
+            src.spatialBlend = 0f; // Som 2D para garantir volume total independente da câmera
+            src.Play();
+            Destroy(audioObj, explosionClip.length + 0.1f);
+        }
 
         // Feedback visual: cria um círculo vermelho efêmero
         GameObject explosionVisual = new GameObject("KamikazeExplosion");

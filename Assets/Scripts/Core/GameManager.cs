@@ -75,6 +75,10 @@ public class GameManager : MonoBehaviour
     private float spawnTimer;
     private int nextEnemyTypeIndex = 0; // Alterna entre tipos de inimigo
 
+    // --- Audio ---
+    private AudioSource bgmSource;
+    private AudioClip bgmClip;
+
     void Awake()
     {
         if (Instance == null) Instance = this;
@@ -142,6 +146,18 @@ public class GameManager : MonoBehaviour
                 Time.timeScale = 0f; // Pausa enquanto mostra a intro
                 cs.Show("inicioJogo", "COMEÇAR ▶", () => { Time.timeScale = 1f; });
             }
+        }
+
+        // --- Configurar Música de Fundo ---
+        bgmSource = gameObject.AddComponent<AudioSource>();
+        bgmClip = Resources.Load<AudioClip>("Audio/musica_fases");
+        if (bgmClip != null)
+        {
+            bgmSource.clip = bgmClip;
+            bgmSource.loop = true;
+            bgmSource.volume = 0.4f;
+            bgmSource.pitch = 0.9f;
+            bgmSource.Play();
         }
     }
 

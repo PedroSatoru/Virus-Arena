@@ -87,6 +87,10 @@ public class InfiniteGameManager : MonoBehaviour
     // Spawn state
     private float spawnTimer;
 
+    // --- Audio ---
+    private AudioSource bgmSource;
+    private AudioClip bgmClip;
+
     // ─── Ciclo de Vida ──────────────────────────────────────────
 
     void Awake()
@@ -136,6 +140,18 @@ public class InfiniteGameManager : MonoBehaviour
         // Registrar morte do player
         PlayerHealth ph = FindFirstObjectByType<PlayerHealth>();
         if (ph != null) ph.OnPlayerDeath += OnPlayerDied;
+
+        // --- Configurar Música de Fundo ---
+        bgmSource = gameObject.AddComponent<AudioSource>();
+        bgmClip = Resources.Load<AudioClip>("Audio/musica_fases");
+        if (bgmClip != null)
+        {
+            bgmSource.clip = bgmClip;
+            bgmSource.loop = true;
+            bgmSource.volume = 0.4f;
+            bgmSource.pitch = 0.9f;
+            bgmSource.Play();
+        }
     }
 
     void Update()

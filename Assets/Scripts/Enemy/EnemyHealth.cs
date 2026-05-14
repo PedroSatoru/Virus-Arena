@@ -20,12 +20,17 @@ public class EnemyHealth : MonoBehaviour
 
     public event Action OnEnemyDeath;
 
+    // --- Audio ---
+    private AudioClip deathClip;
+
     void Awake()
     {
         currentHP = maxHP;
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
             originalColor = spriteRenderer.color;
+
+        deathClip = Resources.Load<AudioClip>("Audio/Enemy_Death_Audio");
     }
 
     public int GetCurrentHP() => currentHP;
@@ -60,7 +65,18 @@ public class EnemyHealth : MonoBehaviour
     void Die()
     {
         OnEnemyDeath?.Invoke();
-        
+
+        if (deathClip != null)
+        {
+            GameObject audioObj = new GameObject("EnemyDeathAudio");
+            AudioSource src = audioObj.AddComponent<AudioSource>();
+            src.clip = deathClip;
+            src.volume = 0.3f;
+            src.spatialBlend = 0f; // Som 2D
+            src.Play();
+            Destroy(audioObj, deathClip.length + 0.1f);
+        }
+
         // Efeito simples de morte: escalar para zero
         StartCoroutine(DeathEffect());
     }

@@ -545,11 +545,23 @@ public class SetupGameScene : Editor
             pos = new Vector3(-0.2796f, -0.2115f, 5f);
             scale = new Vector3(0.63674f, 0.7504317f, 1f);
         }
+        else if (spriteName == "pulmao")
+        {
+            // Medidas específicas para a Fase 1 (Pulmão)
+            pos = new Vector3(-0.0516f, -0.2115f, 5f);
+            scale = new Vector3(0.6529769f, 0.7504317f, 1f);
+        }
+        else if (spriteName == "coraçao")
+        {
+            // Medidas específicas para a Fase 2 (Coração)
+            pos = new Vector3(0.12f, -0.1f, 5f);
+            scale = new Vector3(1.348092f, 1.275503f, 1f);
+        }
         else
         {
-            // Medidas para Fase 1 e 2
-            pos = new Vector3(0.0219f, -0.1971f, 5f);
-            scale = new Vector3(0.9937807f, 0.4689629f, 1f);
+            // Fallback genérico
+            pos = new Vector3(0f, 0f, 5f);
+            scale = Vector3.one;
         }
 
         GameObject bg = CreateSprite("Background_Artwork", bgSprite, Color.white, pos, scale);

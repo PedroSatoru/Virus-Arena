@@ -90,12 +90,12 @@ public class GameManager : MonoBehaviour
         if (GlobalState.hasHeartAndBodyHP)
             bodyMaxHP *= 1.3f;
 
-        if (GlobalState.savedBodyHP > 0f)
+        if (GlobalState.savedBodyHP >= 0f)
             bodyCurrentHP = GlobalState.savedBodyHP;
         else
             bodyCurrentHP = bodyMaxHP;
 
-        timeRemaining = totalTime;
+        timeRemaining = (currentPhase == 2) ? 5f : totalTime;
         organCurrentHP = organMaxHP;
         damageMultiplier = currentPhase;
         spawnTimer = 2f;
@@ -295,11 +295,19 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void ApplyOrganDamage(float rawDamage)
     {
-        if (isOrganDead) return;
+        if (isOrganDead || isGameOver) return;
 
         organCurrentHP -= rawDamage;
         float bodyDamage = rawDamage * damageMultiplier;
         bodyCurrentHP -= bodyDamage;
+
+        // PRIORIDADE: Se o corpo morreu, é Game Over imediato, ignorando se o órgão também morreu
+        if (bodyCurrentHP <= 0f)
+        {
+            bodyCurrentHP = 0f;
+            GameOver("FALÊNCIA SISTÊMICA");
+            return;
+        }
 
         if (organCurrentHP <= 0f)
         {
@@ -307,21 +315,21 @@ public class GameManager : MonoBehaviour
             if (!isOrganDead)
             {
                 isOrganDead = true;
-                // Registra qual fase perdeu o órgão
                 GlobalState.organLostPhase = currentPhase;
+
                 // Fases 1 e 2: se o órgão morre, avança automaticamente
                 if (currentPhase <= 2)
                 {
                     OnPhaseCompleted();
                     return;
                 }
+                else if (currentPhase == 3)
+                {
+                    // Fase 3: Se o cérebro morre, o jogo acaba imediatamente com o final ruim
+                    OnBossDefeated(); 
+                    return;
+                }
             }
-        }
-
-        if (bodyCurrentHP <= 0f)
-        {
-            bodyCurrentHP = 0f;
-            GameOver("FALÊNCIA SISTÊMICA");
         }
     }
 
@@ -490,18 +498,16 @@ public class GameManager : MonoBehaviour
         Debug.Log("🎉 BOSS DERROTADO! VITÓRIA!");
 
         // Escolher cutscene de fim baseada nos órgãos perdidos
+        // Prioridade: Cérebro (Ph3) > Coração (Ph2) > Pulmão (Ph1)
         string cutsceneName;
-        if (isOrganDead) // órgão da fase 3 morreu
+        if (isOrganDead || GlobalState.organLostPhase == 3) 
             cutsceneName = "FimCerebro";
+        else if (GlobalState.organLostPhase == 2)
+            cutsceneName = "FimCoração";
+        else if (GlobalState.organLostPhase == 1)
+            cutsceneName = "FimPulmao";
         else
-        {
-            cutsceneName = GlobalState.organLostPhase switch
-            {
-                1 => "FimPulmao",
-                2 => "FimCoracao",
-                _ => "FinalFeliz" // nenhum órgão perdido = vitória perfeita
-            };
-        }
+            cutsceneName = "FinalFeliz"; // vitória perfeita
 
         CutsceneManager cs = FindFirstObjectByType<CutsceneManager>();
         if (cs != null)
@@ -527,7 +533,19 @@ public class GameManager : MonoBehaviour
         bodyCurrentHP -= damage;
         organCurrentHP -= damage * 0.5f; // 50% do dano também vai pro órgão (25 de dano)
 
-        if (organCurrentHP < 0f) organCurrentHP = 0f;
+        if (organCurrentHP <= 0f) 
+        {
+            organCurrentHP = 0f;
+            if (!isOrganDead)
+            {
+                isOrganDead = true;
+                GlobalState.organLostPhase = 3;
+                
+                // Se o cérebro morre durante o boss, acaba imediatamente
+                OnBossDefeated();
+                return;
+            }
+        }
 
         if (bodyCurrentHP <= 0f)
         {
@@ -599,7 +617,8 @@ public class GameManager : MonoBehaviour
     public void RestartPhase()
     {
         Time.timeScale = 1f;
-        GlobalState.ResetState();
+        // NÃO chamamos GlobalState.ResetState() aqui para não perder 
+        // os PowerUps e o histórico de órgãos perdidos da run atual.
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 

@@ -285,17 +285,18 @@ public class InfiniteGameManager : MonoBehaviour
         float bodyDamage = rawDamage * damageMultiplier;
         bodyCurrentHP -= bodyDamage;
 
-        if (organCurrentHP <= 0f)
-        {
-            organCurrentHP = 0f;
-            GameOver("ÓRGÃO DESTRUÍDO");
-            return;
-        }
-
+        // PRIORIDADE: Se o corpo morreu, é Game Over imediato
         if (bodyCurrentHP <= 0f)
         {
             bodyCurrentHP = 0f;
             GameOver("FALÊNCIA SISTÊMICA");
+            return;
+        }
+
+        if (organCurrentHP <= 0f)
+        {
+            organCurrentHP = 0f;
+            GameOver("ÓRGÃO DESTRUÍDO");
         }
     }
 

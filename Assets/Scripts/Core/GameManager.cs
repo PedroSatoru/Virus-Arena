@@ -95,7 +95,7 @@ public class GameManager : MonoBehaviour
         else
             bodyCurrentHP = bodyMaxHP;
 
-        timeRemaining = (currentPhase == 2) ? 5f : totalTime;
+        timeRemaining = totalTime;
         organCurrentHP = organMaxHP;
         damageMultiplier = currentPhase;
         spawnTimer = 2f;
